@@ -1,6 +1,7 @@
 #include <QApplication>
 #include "passworddialog.h"
 #include <QTextCodec>
+#include <iostream>
 
 int main(int argc, char *argv[])
 {
@@ -11,10 +12,8 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForCStrings(codec);
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));*/
 
-    passwordDialog w;
+    PasswordDialog w;
     w.show();
 
     return a.exec();
-
-    return 0;
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>profileDeleteDialog</class>
- <widget class="QDialog" name="profileDeleteDialog">
+ <class>ProfileDeleteDialog</class>
+ <widget class="QDialog" name="ProfileDeleteDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -82,7 +82,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>profileDeleteDialog</receiver>
+   <receiver>ProfileDeleteDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -98,7 +98,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>profileDeleteDialog</receiver>
+   <receiver>ProfileDeleteDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

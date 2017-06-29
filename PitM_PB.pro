@@ -1,10 +1,4 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2012-07-10T21:14:31
-#
-#-------------------------------------------------
-
-QT       += core gui widgets multimedia
+QT += core gui widgets multimedia
 
 TARGET = PitM_PB
 TEMPLATE = app
@@ -18,8 +12,8 @@ SOURCES += main.cpp\
     keygendialog.cpp \
     profiledeletedialog.cpp \
     profilecreatedialog.cpp \
-    Hash.cpp \
-    Crypt.cpp \
+    hash.cpp \
+    crypt.cpp \
     passwordkeeper.cpp \
     masterkeeper.cpp \
     keyeditdialog.cpp
@@ -33,8 +27,8 @@ HEADERS  += \
     profiledeletedialog.h \
     profilecreatedialog.h \
     platform.h \
-    Hash.h \
-    Crypt.h \
+    hash.h \
+    crypt.h \
     passwordkeeper.h \
     masterkeeper.h \
     keyeditdialog.h
@@ -46,58 +40,3 @@ FORMS    += \
     profiledeletedialog.ui \
     profilecreatedialog.ui \
     keyeditdialog.ui
-
-OTHER_FILES += \
-    GOST.dat
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

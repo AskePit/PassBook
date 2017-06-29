@@ -2,9 +2,9 @@
 #include "ui_keygendialog.h"
 #include "instruments.h"
 
-keyGenDialog::keyGenDialog(QWidget *parent) :
+KeyGenDialog::KeyGenDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::keyGenDialog)
+    ui(new Ui::KeyGenDialog)
 {
     ui->setupUi(this);
     allignWindowToCenter(this);
@@ -16,13 +16,13 @@ keyGenDialog::keyGenDialog(QWidget *parent) :
     ui->comboBox->setCurrentIndex(3);
 }
 
-keyGenDialog::~keyGenDialog()
+KeyGenDialog::~KeyGenDialog()
 {
     delete ui;
 }
 
-void keyGenDialog::on_pushButton_clicked()
+void KeyGenDialog::on_pushButton_clicked()
 {
     emit sendKeyParams(ui->spinBox->value(), ui->comboBox->currentIndex()+1);
-    this->~keyGenDialog();
+    this->~KeyGenDialog();
 }

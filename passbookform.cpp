@@ -14,10 +14,10 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, byte* password, QW
     : QWidget(parent)
     , ui(new Ui::PassBookForm)
     , login(login)
-    , masterKeeper(this->password, PassBook::SIZEOF_KEY)
+    , masterKeeper(this->password, PassBook::SIZE_OF_KEY)
     , passBook(passBook)
 {
-    memcpy(this->password, password, PassBook::SIZEOF_KEY);
+    memcpy(this->password, password, PassBook::SIZE_OF_KEY);
     masterKeeper.lock();
 
     ui->setupUi(this);
@@ -69,7 +69,7 @@ PassBookForm::~PassBookForm()
 {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->clear();
-    memset(password, 0, PassBook::SIZEOF_KEY);
+    memset(password, 0, PassBook::SIZE_OF_KEY);
     delete passBook;
     ui->passTable->clear();
     delete ui;
@@ -268,7 +268,7 @@ void PassBookForm::on_SAVE_clicked()
 
 void PassBookForm::on_backButton_clicked()
 {
-    passwordDialog *w = new passwordDialog;
+    PasswordDialog *w = new PasswordDialog;
     w->show();
     this->close();
     this->~PassBookForm();
@@ -276,7 +276,7 @@ void PassBookForm::on_backButton_clicked()
 
 void PassBookForm::on_keyGen_clicked()
 {
-    keyGenDialog *kG = new keyGenDialog;
+    KeyGenDialog *kG = new KeyGenDialog;
 
     kG->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
     kG->show();
@@ -309,7 +309,7 @@ void PassBookForm::on_keyEdit_clicked()
     QPixmap p = qvar.value<QPixmap>();
 
     masterKeeper.unlock();
-    keyEditDialog *kE = new keyEditDialog(picMap[hashPixmap(p)].getPass(password));
+    KeyEditDialog *kE = new KeyEditDialog(picMap[hashPixmap(p)].getPass(password));
     masterKeeper.lock();
 
     kE->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);

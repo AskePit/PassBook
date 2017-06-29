@@ -42,7 +42,7 @@ void PasswordKeeper::load(QString pass, const byte* masterPass)
     if(cryptedPass != 0) delete [] cryptedPass;
     sizeOfPass = pass.length();
     cryptedPass = new byte[sizeOfPass];
-    GOST::Crypter crypter;
+    gost::Crypter crypter;
     crypter.cryptString(cryptedPass, pass.toStdString().c_str(), masterPass);
 }
 
@@ -50,7 +50,7 @@ QString PasswordKeeper::getPass(const byte* masterPass) const
 {
     char* pass = new char[sizeOfPass + 1];
 
-    GOST::Crypter crypter;
+    gost::Crypter crypter;
     crypter.decryptString(pass, cryptedPass, sizeOfPass, masterPass);
 
     QString result(pass);

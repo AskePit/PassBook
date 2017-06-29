@@ -1,30 +1,30 @@
 #include "profiledeletedialog.h"
 #include "ui_profiledeletedialog.h"
 
-profileDeleteDialog::profileDeleteDialog(QWidget *parent) :
+ProfileDeleteDialog::ProfileDeleteDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::profileDeleteDialog)
+    ui(new Ui::ProfileDeleteDialog)
 {
     ui->setupUi(this);
 }
 
-profileDeleteDialog::~profileDeleteDialog()
+ProfileDeleteDialog::~ProfileDeleteDialog()
 {
     delete ui;
 }
 
-void profileDeleteDialog::set_login(QString log)
+void ProfileDeleteDialog::set_login(QString log)
 {
     ui->label_2->setText(ui->label_2->text()+"\""+log+"\"?");
 }
 
-void profileDeleteDialog::on_buttonBox_accepted()
+void ProfileDeleteDialog::on_buttonBox_accepted()
 {
     emit accept_deleting();
-    this->~profileDeleteDialog();
+    this->~ProfileDeleteDialog();
 }
 
-void profileDeleteDialog::on_buttonBox_rejected()
+void ProfileDeleteDialog::on_buttonBox_rejected()
 {
-    this->~profileDeleteDialog();
+    this->~ProfileDeleteDialog();
 }

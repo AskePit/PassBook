@@ -18,7 +18,7 @@ struct Note
 
 class PassBook {
 public:
-    static const size_t SIZEOF_KEY = 32;
+    static const size_t SIZE_OF_KEY = 32;
 
     static const char SOURCE_END;
     static const char URL_END;

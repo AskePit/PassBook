@@ -1,24 +1,24 @@
 #include "profilecreatedialog.h"
 #include "ui_profilecreatedialog.h"
 
-profileCreateDialog::profileCreateDialog(QWidget *parent) :
+ProfileCreateDialog::ProfileCreateDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::profileCreateDialog)
+    ui(new Ui::ProfileCreateDialog)
 {
     ui->setupUi(this);
 }
 
-profileCreateDialog::~profileCreateDialog()
+ProfileCreateDialog::~ProfileCreateDialog()
 {
     delete ui;
 }
 
-void profileCreateDialog::on_buttonBox_rejected()
+void ProfileCreateDialog::on_buttonBox_rejected()
 {
-    this->~profileCreateDialog();
+    this->~ProfileCreateDialog();
 }
 
-void profileCreateDialog::on_buttonBox_accepted()
+void ProfileCreateDialog::on_buttonBox_accepted()
 {
     if(ui->loginLine->text().isEmpty())                     ui->msg_label->setText("Enter Profile name");
     else if (ui->loginLine->text().size() < 4)              ui->msg_label->setText("Too short profiles name");
@@ -28,6 +28,6 @@ void profileCreateDialog::on_buttonBox_accepted()
     else
     {
         emit send_profile_attr(ui->loginLine->text(), ui->keyLine->text());
-        this->~profileCreateDialog();
+        this->~ProfileCreateDialog();
     }
 }

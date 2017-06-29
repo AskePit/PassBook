@@ -4,16 +4,16 @@
 #include <QDialog>
 
 namespace Ui {
-class profileDeleteDialog;
+class ProfileDeleteDialog;
 }
 
-class profileDeleteDialog : public QDialog
+class ProfileDeleteDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit profileDeleteDialog(QWidget *parent = 0);
-    ~profileDeleteDialog();
+    explicit ProfileDeleteDialog(QWidget *parent = 0);
+    ~ProfileDeleteDialog();
 
     void set_login(QString log);
 
@@ -25,7 +25,7 @@ private slots:
     void on_buttonBox_rejected();
 
 private:
-    Ui::profileDeleteDialog *ui;
+    Ui::ProfileDeleteDialog *ui;
 };
 
 #endif // PROFILEDELETEDIALOG_H

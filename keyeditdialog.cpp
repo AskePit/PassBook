@@ -1,26 +1,26 @@
 #include "keyeditdialog.h"
 #include "ui_keyeditdialog.h"
 
-keyEditDialog::keyEditDialog(QString p, QWidget *parent) :
+KeyEditDialog::KeyEditDialog(QString p, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::keyEditDialog)
+    ui(new Ui::KeyEditDialog)
 {
     ui->setupUi(this);
     ui->lineEdit->setText(p);
 }
 
-keyEditDialog::~keyEditDialog()
+KeyEditDialog::~KeyEditDialog()
 {
     delete ui;
 }
 
-void keyEditDialog::on_buttonBox_accepted()
+void KeyEditDialog::on_buttonBox_accepted()
 {
     emit sendKey(ui->lineEdit->text());
-    this->~keyEditDialog();
+    this->~KeyEditDialog();
 }
 
-void keyEditDialog::on_buttonBox_rejected()
+void KeyEditDialog::on_buttonBox_rejected()
 {
-    this->~keyEditDialog();
+    this->~KeyEditDialog();
 }

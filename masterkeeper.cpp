@@ -2,20 +2,20 @@
 #include "instruments.h"
 
 MasterKeeper::MasterKeeper(byte* data, size_t size)
-    : size(size)
-    , data(data)
+    : m_size(size)
+    , m_data(data)
 {
-    x = new byte[size];
+    m_x = new byte[m_size];
 }
 
 MasterKeeper::~MasterKeeper()
 {
-    delete x;
+    delete m_x;
 }
 
 void MasterKeeper::lock()
 {
-    memrandomset(x, size);
+    memrandomset(m_x, m_size);
     transform();
 }
 
@@ -26,7 +26,7 @@ void MasterKeeper::unlock()
 
 void MasterKeeper::transform()
 {
-    for(uint i = 0; i<size; ++i) {
-        data[i] ^= x[i];
+    for(uint i = 0; i<m_size; ++i) {
+        m_data[i] ^= m_x[i];
     }
 }

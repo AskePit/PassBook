@@ -4,16 +4,16 @@
 #include <QDialog>
 
 namespace Ui {
-class keyGenDialog;
+class KeyGenDialog;
 }
 
-class keyGenDialog : public QDialog
+class KeyGenDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit keyGenDialog(QWidget *parent = 0);
-    ~keyGenDialog();
+    explicit KeyGenDialog(QWidget *parent = 0);
+    ~KeyGenDialog();
 
 signals:
     void sendKeyParams(int n, int mode);
@@ -22,7 +22,7 @@ private slots:
     void on_pushButton_clicked();
 
 private:
-    Ui::keyGenDialog *ui;
+    Ui::KeyGenDialog *ui;
 };
 
 #endif // KEYGENDIALOG_H

@@ -11,9 +11,9 @@
 
 #include "platform.h"
 
-namespace GOST
+namespace gost
 {
-    const uint SIZEOF_HASH = 64;
+    const size_t SIZE_OF_HASH = 64;
     void hash(byte* hash, const byte* message, const uint length);
 }
 

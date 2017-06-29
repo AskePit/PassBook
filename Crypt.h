@@ -13,31 +13,32 @@
 
 #include "platform.h"
 
-namespace GOST
+namespace gost
 {
 	class Crypter
 	{
-	private:
-		byte SBox[4][256]; // this is an internal [4][256] representation of a standart [8][16] GOST table
-		uint Sync[2];
-		
 	public:
 		Crypter();
+		~Crypter();
 
-		void cryptData(byte* dst, const byte* scr, const uint size, const byte* password);
-		void cryptString(byte* dst, const char* scr, const byte* password);
-		void decryptString(char* dst, const byte* scr, uint size, const byte* password);
-		void cryptFile(const char* fileName, const byte* password);
+		void cryptData(byte *dst, const byte *scr, size_t size, const byte *password);
+		void cryptString(byte *dst, const char *scr, const byte *password);
+		void decryptString(char *dst, const byte *scr, size_t size, const byte *password);
 
 		void useDefaultTable();
-		void setTable(const char* filename); // file with 128 bytes representing SBox table for GOST encryption
-		void setTable(const byte* table);    // 128 bytes representing SBox table for GOST encryption
+		void setTable(const char *filename); // file with 128 bytes representing SBox table for GOST encryption
+		void setTable(const byte *table);    // 128 bytes representing SBox table for GOST encryption
 
 		void useDefaultSync();
 		void setSync(const u64 sync);
 
 	private:
-		void simpleGOST(uint& A, uint& B);
+		u32 SBox[4][256]; // this is an internal [4][256] representation of a standart [8][16] GOST table
+		u32 Sync[2];
+		u32 X[8]; // splitted key
+
+		void cryptBlock(u32 &A, u32 &B);
+		u32 f(u32 word);
 	};
 }
 

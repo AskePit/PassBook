@@ -18,29 +18,33 @@ PassBook::PassBook(std::string fileName)
 
 int PassBook::verify(const byte* password)
 {
+    using namespace gost;
+
     std::ifstream in(fileName.c_str(), std::fstream::in | std::ifstream::ate | std::ifstream::binary);
     size_t sizeofFile = (size_t)in.tellg();
     in.seekg(0, in.beg);
 
-    if(sizeofFile < GOST::SIZEOF_HASH) {
+    if(sizeofFile < SIZE_OF_HASH) {
         in.close();
         return false;
     }
 
-    byte fileHash[GOST::SIZEOF_HASH];
-    in.read((char*)fileHash, GOST::SIZEOF_HASH);
+    byte fileHash[SIZE_OF_HASH];
+    in.read((char*)fileHash, SIZE_OF_HASH);
     in.close();
 
-    byte realHash[GOST::SIZEOF_HASH];
-    GOST::hash(realHash, password, PassBook::SIZEOF_KEY);
+    byte realHash[SIZE_OF_HASH];
+    hash(realHash, password, PassBook::SIZE_OF_KEY);
 
-    return memcmp(fileHash, realHash, GOST::SIZEOF_HASH) == 0 ?
-           sizeofFile - GOST::SIZEOF_HASH :
+    return memcmp(fileHash, realHash, SIZE_OF_HASH) == 0 ?
+           static_cast<int>(sizeofFile - SIZE_OF_HASH) :
            -1;
 }
 
 bool PassBook::load(const byte* password)
 {
+    using namespace gost;
+
     int sizeofMessage = verify(password);
     if(sizeofMessage < 0) {
         return loaded = false;
@@ -48,7 +52,7 @@ bool PassBook::load(const byte* password)
 
     std::fstream f(fileName.c_str(), std::fstream::in | std::fstream::binary);
     std::streambuf* rawBuff = f.rdbuf();
-    rawBuff->pubseekpos(GOST::SIZEOF_HASH, f.in);
+    rawBuff->pubseekpos(SIZE_OF_HASH, f.in);
 
     byte* cryptedMessage = new byte[sizeofMessage];
     byte* decryptedMessage = new byte[sizeofMessage];
@@ -56,7 +60,7 @@ bool PassBook::load(const byte* password)
     rawBuff->sgetn((char*)cryptedMessage, sizeofMessage);
     f.close();
 
-    GOST::Crypter crypter;
+    Crypter crypter;
     crypter.decryptString((char*)decryptedMessage, cryptedMessage, sizeofMessage, password);
 
     byte* cutHead   = decryptedMessage;
@@ -95,6 +99,7 @@ bool PassBook::load(const byte* password)
 
 void PassBook::save(const byte* password)
 {
+    using namespace gost;
     std::stringstream ss;
 
     for(uint i = 0; i<notes.size(); ++i) {
@@ -109,21 +114,21 @@ void PassBook::save(const byte* password)
     }
 
     std::string s = ss.str();
-    const uint size = s.length();
+    const size_t size = s.length();
 
     const char* decryptedMessage = s.c_str();
     byte* cryptedMessage = new byte[size];
 
 
-    GOST::Crypter crypter;
+    Crypter crypter;
     crypter.cryptString(cryptedMessage, decryptedMessage, password);
 
     std::fstream f(fileName.c_str(), std::fstream::out | std::fstream::trunc | std::fstream::binary);
 
-    byte fileHash[GOST::SIZEOF_HASH];
-    GOST::hash(fileHash, password, PassBook::SIZEOF_KEY);
+    byte fileHash[SIZE_OF_HASH];
+    hash(fileHash, password, PassBook::SIZE_OF_KEY);
 
-    f.write((char*)fileHash, GOST::SIZEOF_HASH);
+    f.write((char*)fileHash, SIZE_OF_HASH);
     f.write((char*)cryptedMessage, size);
     f.close();
 

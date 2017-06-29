@@ -6,16 +6,16 @@
 class MasterKeeper
 {
 public:
-    MasterKeeper(byte* data, uint size);
+    MasterKeeper(byte* data, size_t size);
     ~MasterKeeper();
 
     void lock();
     void unlock();
 
 private:
-    uint size;
-    byte* data;
-    byte* x;
+    size_t m_size;
+    byte* m_data;
+    byte* m_x;
 
     void transform();
 };

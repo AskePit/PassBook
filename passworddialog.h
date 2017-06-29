@@ -4,19 +4,19 @@
 #include <QDialog>
 
 namespace Ui {
-class passwordDialog;
+class PasswordDialog;
 }
 
-class passwordDialog : public QDialog
+class PasswordDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit passwordDialog(QWidget *parent = 0);
-    ~passwordDialog();
+    explicit PasswordDialog(QWidget *parent = 0);
+    ~PasswordDialog();
 
 signals:
-    void ext();     // Выход в главное меню
+    void ext();     // пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 
 private slots:
 
@@ -27,7 +27,7 @@ private slots:
     void on_CreateButton_clicked();
 
 private:
-    Ui::passwordDialog *ui;
+    Ui::PasswordDialog *ui;
 };
 
 #endif // PASSWORDDIALOG_H
