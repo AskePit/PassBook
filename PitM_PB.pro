@@ -3,40 +3,39 @@ QT += core gui widgets multimedia
 TARGET = PitM_PB
 TEMPLATE = app
 
-
 SOURCES += main.cpp\
     instruments.cpp \
     passbook.cpp \
     passbookform.cpp \
-    passworddialog.cpp \
-    keygendialog.cpp \
-    profiledeletedialog.cpp \
-    profilecreatedialog.cpp \
     hash.cpp \
     crypt.cpp \
     passwordkeeper.cpp \
     masterkeeper.cpp \
-    keyeditdialog.cpp
+    dialogs/profilecreatedialog.cpp \
+    dialogs/profiledeletedialog.cpp \
+    dialogs/passworddialog.cpp \
+    dialogs/keygendialog.cpp \
+    dialogs/keyeditdialog.cpp
 
 HEADERS  += \
     instruments.h \
     passbook.h \
     passbookform.h \
-    passworddialog.h \
-    keygendialog.h \
-    profiledeletedialog.h \
-    profilecreatedialog.h \
     platform.h \
     hash.h \
     crypt.h \
     passwordkeeper.h \
     masterkeeper.h \
-    keyeditdialog.h
+    dialogs/profilecreatedialog.h \
+    dialogs/profiledeletedialog.h \
+    dialogs/passworddialog.h \
+    dialogs/keygendialog.h \
+    dialogs/keyeditdialog.h
 
 FORMS    += \
     passbookform.ui \
-    passworddialog.ui \
-    keygendialog.ui \
-    profiledeletedialog.ui \
-    profilecreatedialog.ui \
-    keyeditdialog.ui
+    dialogs/profilecreatedialog.ui \
+    dialogs/profiledeletedialog.ui \
+    dialogs/passworddialog.ui \
+    dialogs/keygendialog.ui \
+    dialogs/keyeditdialog.ui

@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "passworddialog.h"
+#include "dialogs/passworddialog.h"
 #include <QTextCodec>
 #include <iostream>
 

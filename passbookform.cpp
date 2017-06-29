@@ -6,9 +6,9 @@
 #include <QClipboard>
 #include "instruments.h"
 #include "passbook.h"
-#include "PasswordDialog.h"
-#include "keygendialog.h"
-#include "keyeditdialog.h"
+#include "dialogs/passworddialog.h"
+#include "dialogs/keygendialog.h"
+#include "dialogs/keyeditdialog.h"
 
 PassBookForm::PassBookForm(PassBook* passBook, QString login, byte* password, QWidget *parent)
     : QWidget(parent)
