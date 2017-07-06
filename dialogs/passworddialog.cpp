@@ -5,8 +5,9 @@
 #include "profiledeletedialog.h"
 #include "profilecreatedialog.h"
 
-#include "instruments.h"
-#include "Hash.h"
+#include "utils.h"
+#include "crypt.h"
+#include "hash.h"
 #include "passbook.h"
 
 #include <QDir>
@@ -20,7 +21,6 @@ PasswordDialog::PasswordDialog(QWidget *parent) :
 {
     ui->setupUi(this);
     allignWindowToCenter(this);
-    //QTextCodec::setCodecForTr(QTextCodec::codecForName("windows-1251") );
 
     QString profilesPath("");
     QString filter("*.dat");
@@ -46,70 +46,58 @@ PasswordDialog::~PasswordDialog()
 void PasswordDialog::on_enterButton_clicked()
 {
     ui->msgLabel->setText("");
-    FILE *prof;
-    std::string filename = (this->ui->loginBox->currentText()+".dat").toStdString();
+    QString filename = (ui->loginBox->currentText()+".dat");
 
-    if ((prof = fopen(filename.c_str(), "rb")) == NULL) {
+    QFile f(filename);
+    if (!f.open(QIODevice::ReadOnly)) {
         ui->msgLabel->setText("Profile log in error");
-        fclose(prof);
         return;
     }
-    fclose(prof);
 
     PassBook* passBook = new PassBook(filename);
 
-    byte password[PassBook::SIZE_OF_KEY];
-    memset(password, 0, PassBook::SIZE_OF_KEY);
-    memcpy(password, this->ui->keyLine->text().toLatin1(), this->ui->keyLine->text().length());
+    Master master(std::move(ui->keyLine->text()));
     ui->keyLine->setText("");
 
-    if(!passBook->load(password)) {
-        memset(password, 0, PassBook::SIZE_OF_KEY);
+    if(!passBook->load(master)) {
         delete passBook;
         ui->msgLabel->setText("Wrong password");
         return;
     }
 
-    PassBookForm *passBookForm = new PassBookForm(passBook, this->ui->loginBox->currentText(), password);
-    memset(password, 0, PassBook::SIZE_OF_KEY);
+    PassBookForm *passBookForm = new PassBookForm(passBook, ui->loginBox->currentText(), master);
     passBookForm->print_notes();
     passBookForm->show();
 
-    this->~PasswordDialog();
+    hide();
+    //deleteLater();
 }
 
 void PasswordDialog::on_deleteButton_clicked()
 {
     ui->msgLabel->setText("");
-    FILE *prof;
-    std::string filename = (this->ui->loginBox->currentText()+".dat").toStdString();
+    QString filename = (ui->loginBox->currentText() + ".dat");
 
-    if ((prof = fopen(filename.c_str(), "rb")) == NULL) {
+    QFile f(filename);
+    if (!f.open(QIODevice::ReadOnly)) {
         ui->msgLabel->setText("Profile error");
-        fclose(prof);
         return;
     }
-    fclose(prof);
 
     PassBook* passBook = new PassBook(filename);
 
-    byte password[PassBook::SIZE_OF_KEY];
-    memset(password, 0, PassBook::SIZE_OF_KEY);
-    memcpy(password, this->ui->keyLine->text().toLatin1(), this->ui->keyLine->text().length());
+    Master master(std::move(ui->keyLine->text()));
     ui->keyLine->setText("");
 
-    if(passBook->verify(password) < 0) {
-        memset(password, 0, PassBook::SIZE_OF_KEY);
+    if(passBook->verify(master) < 0) {
         ui->msgLabel->setText("Wrong password");
         return;
     }
 
-    memset(password, 0, PassBook::SIZE_OF_KEY);
-
     ProfileDeleteDialog *pD = new ProfileDeleteDialog;
 
     pD->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Dialog);
-    pD->set_login(this->ui->loginBox->currentText());
+    pD->set_login(ui->loginBox->currentText());
     pD->show();
 
     QObject::connect(pD, SIGNAL(accept_deleting()), this, SLOT(delete_profile()));
@@ -117,9 +105,9 @@ void PasswordDialog::on_deleteButton_clicked()
 
 void PasswordDialog::delete_profile()
 {
-    QString filename = this->ui->loginBox->currentText()+".dat";
+    QString filename = ui->loginBox->currentText()+".dat";
     unlink(filename.toStdString().c_str());
-    ui->msgLabel->setText("Profile \""+this->ui->loginBox->currentText()+"\" deleted");
+    ui->msgLabel->setText("Profile \"" + ui->loginBox->currentText()+"\" deleted");
     ui->loginBox->removeItem(ui->loginBox->currentIndex());
     ui->keyLine->setText("");
 
@@ -133,27 +121,29 @@ void PasswordDialog::on_CreateButton_clicked()
     pC->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Dialog);
     pC->show();
 
-    QObject::connect(pC, SIGNAL(send_profile_attr(QString,QString)), this, SLOT(create_profile(QString,QString)));
+    QObject::connect(pC, &ProfileCreateDialog::send_profile_attr, this, &PasswordDialog::create_profile);
 }
 
-void PasswordDialog::create_profile(QString log, QString key)
+void PasswordDialog::create_profile(const QString &log, QString &key)
 {
-    FILE *f;
+    Master master(std::move(key));
 
-    byte keyBuff[PassBook::SIZE_OF_KEY];
-    memset(keyBuff, 0, PassBook::SIZE_OF_KEY);
-    memcpy(keyBuff, key.toLatin1(), key.size());
-
-    log += ".dat";
-    f = fopen(log.toStdString().c_str(), "wb");
+    QString logFile = log + ".dat";
 
     byte hsh[gost::SIZE_OF_HASH];
-    gost::hash(hsh, keyBuff, PassBook::SIZE_OF_KEY);
-    fwrite(hsh, gost::SIZE_OF_HASH, 1, f);
-    fclose(f);
 
-    PassBook* passBook = new PassBook(log.toStdString());
-    PassBookForm *passBookForm = new PassBookForm(passBook, this->ui->loginBox->currentText(), keyBuff);
+    {
+        MasterDoor door(master);
+        gost::hash(hsh, door.get(), gost::SIZE_OF_KEY);
+    }
+
+    QFile f(logFile);
+    f.open(QIODevice::WriteOnly);
+    f.write(reinterpret_cast<char*>(hsh), gost::SIZE_OF_HASH);
+    f.close();
+
+    PassBook* passBook = new PassBook(logFile);
+    PassBookForm *passBookForm = new PassBookForm(passBook, ui->loginBox->currentText(), master);
     passBookForm->print_notes();
     passBookForm->show();
 

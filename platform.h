@@ -2,6 +2,7 @@
 #define PLATFORM_INCLUDE
 
 #include <stdint.h>
+#include <QString>
 
 #if defined (_WIN32) || defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__x86_64__) || defined( __mips__ ) || defined( _mips )
         #define LITTLE_ENDIAN

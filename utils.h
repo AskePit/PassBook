@@ -2,12 +2,26 @@
 #define INSTRUMENTS_H
 
 #include <QString>
-
-using namespace std;
+#include <vector>
+#include "platform.h"
 
 class QWidget;
 
-void memrandomset(void* data, size_t size);
+void memrandomset(byte* data, size_t size);
+
+template<typename T>
+inline auto as_bytes(T *data) {
+    return reinterpret_cast<
+        typename std::conditional<std::is_const<T>::value, const byte*, byte*>::type
+    >(data);
+}
+
+template <typename T>
+inline auto as_bytes(T &t) -> decltype(as_bytes(t.data())) {
+    return as_bytes(t.data());
+}
+
+
 QString passGenerate(int n, int mode);
 void allignWindowToCenter(QWidget *w);
 

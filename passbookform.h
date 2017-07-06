@@ -6,8 +6,6 @@
 #include <QMap>
 #include <QModelIndex>
 #include "passwordkeeper.h"
-#include "masterkeeper.h"
-
 
 class PassBook;
 
@@ -30,7 +28,7 @@ public:
         END_OF_COL
     };
 
-    explicit PassBookForm(PassBook* passBook, QString login, byte* password, QWidget *parent = 0);
+    explicit PassBookForm(PassBook* passBook, QString login, const Master &master, QWidget *parent = 0);
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
@@ -55,10 +53,9 @@ private:
     Ui::PassBookForm *ui;
 
     QString login;
-    byte password[32];
-    MasterKeeper masterKeeper;
+    Master master;
     PassBook* passBook;
-    QMap<quint32, PasswordKeeper> picMap;
+    QMap<quint32, Password> picMap;
 
     void renderPasswordPixmap(const QString& p, int row);
 };

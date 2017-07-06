@@ -15,6 +15,8 @@
 
 namespace gost
 {
+    constexpr size_t SIZE_OF_KEY = 32;
+
 	class Crypter
 	{
 	public:

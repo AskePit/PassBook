@@ -2,6 +2,7 @@
 #define PROFILECREATEDIALOG_H
 
 #include <QDialog>
+#include "platform.h"
 
 namespace Ui {
 class ProfileCreateDialog;
@@ -16,7 +17,7 @@ public:
     ~ProfileCreateDialog();
 
 signals:
-    void send_profile_attr(QString log, QString key);
+    void send_profile_attr(const QString &log, QString &key);
 
 private slots:
 

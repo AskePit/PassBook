@@ -4,22 +4,20 @@
 #include <QSound>
 #include <QPainter>
 #include <QClipboard>
-#include "instruments.h"
+#include "utils.h"
 #include "passbook.h"
+#include "crypt.h"
 #include "dialogs/passworddialog.h"
 #include "dialogs/keygendialog.h"
 #include "dialogs/keyeditdialog.h"
 
-PassBookForm::PassBookForm(PassBook* passBook, QString login, byte* password, QWidget *parent)
+PassBookForm::PassBookForm(PassBook* passBook, QString login, const Master &master, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::PassBookForm)
     , login(login)
-    , masterKeeper(this->password, PassBook::SIZE_OF_KEY)
+    , master(master)
     , passBook(passBook)
 {
-    memcpy(this->password, password, PassBook::SIZE_OF_KEY);
-    masterKeeper.lock();
-
     ui->setupUi(this);
     allignWindowToCenter(this);
 
@@ -69,7 +67,6 @@ PassBookForm::~PassBookForm()
 {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->clear();
-    memset(password, 0, PassBook::SIZE_OF_KEY);
     delete passBook;
     ui->passTable->clear();
     delete ui;
@@ -116,9 +113,7 @@ void PassBookForm::renderPasswordPixmap(const QString& p, int row)
     cell->setFlags(cell->flags() &= ~Qt::ItemIsEditable);
     ui->passTable->setItem(row, PASSWORD_COL, cell);
 
-    masterKeeper.unlock();
-    PasswordKeeper keeper(p, password);
-    masterKeeper.lock();
+    Password keeper(p, master);
     picMap[hashPixmap(pixmap)] = keeper;
 }
 
@@ -134,25 +129,25 @@ void PassBookForm::gen_password(int n, int mode)
 
 void PassBookForm::print_notes()
 {
-    std::vector<Note>& notes = passBook->getNotes();
+    const QVector<Note>& notes = passBook->getNotes();
 
     while(ui->passTable->rowCount()) {
         ui->passTable->removeRow(0);
     }
 
-    for(uint i = 0; i<notes.size(); i++)
+    for(int i = 0; i<notes.size(); ++i)
     {
+        const auto &note = notes[i];
+
         ui->passTable->insertRow(i);
         ui->passTable->setRowHeight(i, 20);
 
         ui->passTable->setItem(i, NUMBER_COL, new QTableWidgetItem(QString::number(i+1)));
-        ui->passTable->setItem(i, RESOURCE_COL, new QTableWidgetItem(notes[i].source));
-        ui->passTable->setItem(i, URL_COL, new QTableWidgetItem(notes[i].URL));
-        ui->passTable->setItem(i, LOGIN_COL, new QTableWidgetItem(notes[i].login));
+        ui->passTable->setItem(i, RESOURCE_COL, new QTableWidgetItem(note.source));
+        ui->passTable->setItem(i, URL_COL, new QTableWidgetItem(note.URL));
+        ui->passTable->setItem(i, LOGIN_COL, new QTableWidgetItem(note.login));
 
-        masterKeeper.unlock();
-        QString p = notes[i].password.getPass(password);
-        masterKeeper.lock();
+        QString p = note.password.get(master);
 
         renderPasswordPixmap(p, i);
 
@@ -241,7 +236,7 @@ void PassBookForm::on_DOWN_clicked()
 
 void PassBookForm::on_SAVE_clicked()
 {
-    std::vector<Note>& notes = passBook->getNotes();
+    QVector<Note>& notes = passBook->getNotes();
     notes.clear();
 
     for(int i = 0; i<ui->passTable->rowCount(); ++i)
@@ -258,9 +253,7 @@ void PassBookForm::on_SAVE_clicked()
         notes.push_back(note);
     }
 
-    masterKeeper.unlock();
-    passBook->save(password);
-    masterKeeper.lock();
+    passBook->save(master);
 
     QSound sound("Okay");
     sound.play();
@@ -291,9 +284,7 @@ void PassBookForm::doubleClickReact(const QModelIndex& idx)
 
         QVariant qvar = ui->passTable->item(idx.row(), PASSWORD_COL)->data(Qt::DecorationRole);
         QPixmap p = qvar.value<QPixmap>();
-        masterKeeper.unlock();
-        clipboard->setText(picMap[hashPixmap(p)].getPass(password));
-        masterKeeper.lock();
+        clipboard->setText(picMap[hashPixmap(p)].get(master));
     }
 }
 
@@ -308,9 +299,7 @@ void PassBookForm::on_keyEdit_clicked()
     QVariant qvar = ui->passTable->item(ui->passTable->currentRow(), PASSWORD_COL)->data(Qt::DecorationRole);
     QPixmap p = qvar.value<QPixmap>();
 
-    masterKeeper.unlock();
-    KeyEditDialog *kE = new KeyEditDialog(picMap[hashPixmap(p)].getPass(password));
-    masterKeeper.lock();
+    KeyEditDialog *kE = new KeyEditDialog(picMap[hashPixmap(p)].get(master));
 
     kE->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
     kE->show();

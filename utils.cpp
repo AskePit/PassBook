@@ -1,4 +1,4 @@
-#include "instruments.h"
+#include "utils.h"
 #include "platform.h"
 
 #include <ctime>
@@ -7,16 +7,15 @@
 #include <QDesktopWidget>
 #include <QApplication>
 
-void memrandomset(void* data, size_t size)
+void memrandomset(byte* data, size_t size)
 {
     srand((unsigned int)time(NULL));
 
-    byte* dataCursor = (byte*)data;
-    byte* dataEnd = dataCursor + size;
+    byte* dataEnd = data + size;
 
-    while(dataCursor != dataEnd) {
-        *dataCursor = rand()%256;
-        ++dataCursor;
+    while(data != dataEnd) {
+        *data = rand()%256;
+        ++data;
     }
 }
 

@@ -1,6 +1,6 @@
 #include "keygendialog.h"
 #include "ui_keygendialog.h"
-#include "instruments.h"
+#include "utils.h"
 
 KeyGenDialog::KeyGenDialog(QWidget *parent) :
     QDialog(parent),
