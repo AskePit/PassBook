@@ -17,15 +17,15 @@ public:
     ~PasswordDialog();
 
 signals:
-    void ext();     // ����� � ������� ����
+    void ext();
 
 private slots:
-
-    void on_enterButton_clicked();
+    void on_createButton_clicked();
     void on_deleteButton_clicked();
-    void delete_profile();
+    void on_enterButton_clicked();
+
     void create_profile(const QString &log, QString &key);
-    void on_CreateButton_clicked();
+    void delete_profile();
 
 private:
     Ui::PasswordDialog *ui;

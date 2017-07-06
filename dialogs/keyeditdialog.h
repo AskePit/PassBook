@@ -16,7 +16,7 @@ public:
     ~KeyEditDialog();
 
 signals:
-    void sendKey(QString p);
+    void sendKey(QString &p);
 
 private slots:
     void on_buttonBox_accepted();

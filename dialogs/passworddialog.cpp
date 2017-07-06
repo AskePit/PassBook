@@ -114,7 +114,7 @@ void PasswordDialog::delete_profile()
     if(ui->loginBox->count() == 0) ui->deleteButton->setDisabled(true);
 }
 
-void PasswordDialog::on_CreateButton_clicked()
+void PasswordDialog::on_createButton_clicked()
 {
     ProfileCreateDialog *pC = new ProfileCreateDialog;
 

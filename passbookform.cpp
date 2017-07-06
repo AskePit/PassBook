@@ -95,7 +95,7 @@ static qint32 hashPixmap(const QPixmap& pix)
     return hash;
 }
 
-void PassBookForm::renderPasswordPixmap(const QString& p, int row)
+void PassBookForm::renderPasswordPixmap(QString &&p, int row)
 {
     QFont font("Consolas", 10);
     QFontMetrics fm(font);
@@ -113,13 +113,13 @@ void PassBookForm::renderPasswordPixmap(const QString& p, int row)
     cell->setFlags(cell->flags() &= ~Qt::ItemIsEditable);
     ui->passTable->setItem(row, PASSWORD_COL, cell);
 
-    Password keeper(p, master);
+    Password keeper(std::move(p), master);
     picMap[hashPixmap(pixmap)] = keeper;
 }
 
-void PassBookForm::edit_password(QString p)
+void PassBookForm::edit_password(QString &p)
 {
-    renderPasswordPixmap(p, ui->passTable->currentRow());
+    renderPasswordPixmap(std::move(p), ui->passTable->currentRow());
 }
 
 void PassBookForm::gen_password(int n, int mode)
@@ -147,9 +147,9 @@ void PassBookForm::print_notes()
         ui->passTable->setItem(i, URL_COL, new QTableWidgetItem(note.URL));
         ui->passTable->setItem(i, LOGIN_COL, new QTableWidgetItem(note.login));
 
-        QString p = note.password.get(master);
+        QString &&p = note.password.get(master);
 
-        renderPasswordPixmap(p, i);
+        renderPasswordPixmap(std::move(p), i);
 
         ui->passTable->item(i, NUMBER_COL)->setTextAlignment(-3);
     }
@@ -304,5 +304,5 @@ void PassBookForm::on_keyEdit_clicked()
     kE->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
     kE->show();
 
-    QObject::connect(kE, SIGNAL(sendKey(QString)), this, SLOT(edit_password(QString)));
+    connect(kE, &KeyEditDialog::sendKey, this, &PassBookForm::edit_password);
 }

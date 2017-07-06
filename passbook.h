@@ -6,7 +6,7 @@
 #include <QString>
 #include <QVector>
 
-#include "passwordkeeper.h"
+#include "securetypes.h"
 
 struct Note
 {

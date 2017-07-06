@@ -1,15 +1,42 @@
-#include "passwordkeeper.h"
+#include "securetypes.h"
 #include "utils.h"
 #include "crypt.h"
 
 #include <algorithm>
 
-Master::Master(QString &&key)
-    : m_x(gost::SIZE_OF_KEY, 0)
-{
-    Secure<QString> s(key);
+SecureString::SecureString(QString &&str) : QString(str) {}
 
-    m_data = key.toUtf8();
+SecureString::~SecureString()
+{
+    wipememory(constData(), size()*2); // QChar is 16 bytes
+}
+
+SecureBytes::SecureBytes() : QByteArray() {}
+SecureBytes::SecureBytes(int size, char c) : QByteArray(size, c) {}
+SecureBytes::SecureBytes(SecureString &&str) : QByteArray(str.toUtf8()) {}
+SecureBytes::SecureBytes(QByteArray &&bytes) : QByteArray(bytes) {}
+
+SecureBytes::~SecureBytes()
+{
+    wipememory(data(), size());
+}
+
+Master::Master(SecureString &&key)
+    : m_data(key.toUtf8())
+    , m_x(gost::SIZE_OF_KEY, 0)
+{
+    init();
+}
+
+Master::Master(SecureBytes &&key)
+    : m_data(key)
+    , m_x(gost::SIZE_OF_KEY, 0)
+{
+    init();
+}
+
+void Master::init()
+{
     int size = m_data.size();
     m_data.resize(gost::SIZE_OF_KEY);
 
@@ -59,15 +86,14 @@ byte *MasterDoor::get()
     return as_bytes(m_master.m_data.data());
 }
 
-Password::Password(const QString &pass, Master &master)
+Password::Password(QString &&pass, Master &master)
 {
-    load(pass, master);
+    load(std::move(pass), master);
 }
 
-void Password::load(const QString &pass, Master &master)
+void Password::load(QString &&pass, Master &master)
 {
-    QByteArray bytes = pass.toUtf8();
-    Secure<QByteArray> s(bytes);
+    SecureBytes bytes(std::move(pass));
 
     int size = bytes.size();
     m_cryptedPass.resize(size);
@@ -81,7 +107,7 @@ void Password::load(const QString &pass, Master &master)
     m_loaded = true;
 }
 
-QString Password::get(Master &master) const
+SecureString Password::get(Master &master) const
 {
     if(m_cryptedPass.isEmpty()) {
         return QString();

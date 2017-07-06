@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QMap>
 #include <QModelIndex>
-#include "passwordkeeper.h"
+#include "securetypes.h"
 
 class PassBook;
 
@@ -36,7 +36,7 @@ public:
     void sortIDs();
 
 private slots:
-    void edit_password(QString p);
+    void edit_password(QString &p);
     void gen_password(int n, int mode);
     void on_addButton_clicked();
     void on_deleteButton_clicked();
@@ -57,7 +57,7 @@ private:
     PassBook* passBook;
     QMap<quint32, Password> picMap;
 
-    void renderPasswordPixmap(const QString& p, int row);
+    void renderPasswordPixmap(QString &&p, int row);
 };
 
 #endif // PASSBOOKFORM_H

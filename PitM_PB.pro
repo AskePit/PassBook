@@ -8,13 +8,13 @@ SOURCES += main.cpp\
     passbookform.cpp \
     hash.cpp \
     crypt.cpp \
-    passwordkeeper.cpp \
     dialogs/profilecreatedialog.cpp \
     dialogs/profiledeletedialog.cpp \
     dialogs/passworddialog.cpp \
     dialogs/keygendialog.cpp \
     dialogs/keyeditdialog.cpp \
-    utils.cpp
+    utils.cpp \
+    securetypes.cpp
 
 HEADERS  += \
     passbook.h \
@@ -22,13 +22,13 @@ HEADERS  += \
     platform.h \
     hash.h \
     crypt.h \
-    passwordkeeper.h \
     dialogs/profilecreatedialog.h \
     dialogs/profiledeletedialog.h \
     dialogs/passworddialog.h \
     dialogs/keygendialog.h \
     dialogs/keyeditdialog.h \
-    utils.h
+    utils.h \
+    securetypes.h
 
 FORMS    += \
     passbookform.ui \
