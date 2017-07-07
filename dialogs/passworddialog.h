@@ -16,9 +16,6 @@ public:
     explicit PasswordDialog(QWidget *parent = 0);
     ~PasswordDialog();
 
-signals:
-    void ext();
-
 private slots:
     void on_createButton_clicked();
     void on_deleteButton_clicked();

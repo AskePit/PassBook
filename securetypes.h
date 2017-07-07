@@ -36,7 +36,6 @@ private:
     void init();
     void lock();
     void unlock();
-    void transform();
     friend class MasterDoor;
 };
 

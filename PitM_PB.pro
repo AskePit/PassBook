@@ -37,3 +37,5 @@ FORMS    += \
     dialogs/passworddialog.ui \
     dialogs/keygendialog.ui \
     dialogs/keyeditdialog.ui
+
+DEFINES *= QT_USE_QSTRINGBUILDER

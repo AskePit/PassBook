@@ -3,11 +3,13 @@
 #include "crypt.h"
 
 #include <algorithm>
+#include <functional>
 
 SecureString::SecureString(QString &&str) : QString(str) {}
 
 SecureString::~SecureString()
 {
+    // QString::data() will trigger COW, so use QString::constData()
     wipememory(constData(), size()*2); // QChar is 16 bytes
 }
 
@@ -49,25 +51,30 @@ void Master::init()
 
 Master::~Master()
 {
-    wipememory(as_bytes(m_data), gost::SIZE_OF_KEY);
+    wipememory(as<byte*>(m_data), gost::SIZE_OF_KEY);
+}
+
+static inline void xor_arrays(QByteArray &to, const QByteArray &from)
+{
+    using namespace std;
+
+    std::transform(
+        begin(to), end(to),
+        begin(from),
+        begin(to),
+        bit_xor<byte>()
+    );
 }
 
 void Master::lock()
 {
-    memrandomset(as_bytes(m_x), gost::SIZE_OF_KEY);
-    transform();
+    memrandomset(as<byte*>(m_x), gost::SIZE_OF_KEY);
+    xor_arrays(m_data, m_x);
 }
 
 void Master::unlock()
 {
-    transform();
-}
-
-void Master::transform()
-{
-    for(int i = 0; i<gost::SIZE_OF_KEY; ++i) {
-        m_data[i] = m_data[i] ^ m_x[i];
-    }
+    xor_arrays(m_data, m_x);
 }
 
 MasterDoor::MasterDoor(Master &master)
@@ -83,7 +90,7 @@ MasterDoor::~MasterDoor()
 
 byte *MasterDoor::get()
 {
-    return as_bytes(m_master.m_data.data());
+    return as<byte*>(m_master.m_data);
 }
 
 Password::Password(QString &&pass, Master &master)
@@ -98,11 +105,9 @@ void Password::load(QString &&pass, Master &master)
     int size = bytes.size();
     m_cryptedPass.resize(size);
 
-    {
-        gost::Crypter crypter;
-        MasterDoor door(master);
-        crypter.cryptData(as_bytes(m_cryptedPass), as_bytes(bytes), size, door.get());
-    }
+    gost::Crypter crypter;
+    MasterDoor door(master);
+    crypter.cryptData(as<byte*>(m_cryptedPass), as<byte*>(bytes), size, door.get());
 
     m_loaded = true;
 }
@@ -113,13 +118,11 @@ SecureString Password::get(Master &master) const
         return QString();
     }
 
-    QByteArray pass(m_cryptedPass.size(), 0);
+    SecureBytes pass(m_cryptedPass.size(), 0);
 
-    {
-        gost::Crypter crypter;
-        MasterDoor door(master);
-        crypter.cryptData(as_bytes(pass), as_bytes(m_cryptedPass), m_cryptedPass.size(), door.get());
-    }
+    gost::Crypter crypter;
+    MasterDoor door(master);
+    crypter.cryptData(as<byte*>(pass), as<const byte*>(m_cryptedPass), m_cryptedPass.size(), door.get());
 
-    return QString::fromUtf8(pass);
+    return SecureString( QString::fromUtf8(pass) );
 }

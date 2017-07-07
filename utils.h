@@ -9,18 +9,17 @@ class QWidget;
 
 void memrandomset(byte* data, size_t size);
 
-template<typename T>
-inline auto as_bytes(T *data) {
+template<class OUT, class IN>
+inline auto as(IN *data) {
     return reinterpret_cast<
-        typename std::conditional<std::is_const<T>::value, const byte*, byte*>::type
+        typename std::conditional<std::is_const<IN>::value, const OUT, OUT>::type
     >(data);
 }
 
-template <typename T>
-inline auto as_bytes(T &t) -> decltype(as_bytes(t.data())) {
-    return as_bytes(t.data());
+template <class OUT, class IN>
+inline auto as(IN &t) -> decltype(as<OUT>(t.data())) {
+    return as<OUT>(t.data());
 }
-
 
 QString passGenerate(int n, int mode);
 void allignWindowToCenter(QWidget *w);

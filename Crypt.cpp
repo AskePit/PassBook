@@ -177,7 +177,7 @@ void Crypter::setTable(const char* filename)
     f.open(filename, fstream::in | fstream::binary);
 
     byte table[128];
-    f.read(reinterpret_cast<char*>(table), 128);
+    f.read(as<char*>(table), 128);
     f.close();
 
     setTable(table);
@@ -187,7 +187,7 @@ void Crypter::setTable(const char* filename)
 // this 128 bytes will be transformed to special 4*256 table (for better algorythm performance)
 void Crypter::setTable(const byte *table)
 {
-	const u8(*raw)[16] = reinterpret_cast<const u8(*)[16]>(table);
+    const u8(*raw)[16] = as<const u8(*)[16]>(table);
 
 	for (u8 i = 0, j = 0; i < 4; i++, j += 2) {
 		for (u16 k = 0; k < 256; k++) {
@@ -214,12 +214,12 @@ void Crypter::setSync(const u64 sync)
 
 void Crypter::cryptString(byte *dst, const char *scr, const byte *password)
 {
-    cryptData(dst, reinterpret_cast<const byte *>(scr), strlen(scr), password);
+    cryptData(dst, as<const byte *>(scr), strlen(scr), password);
 }
 
 void Crypter::decryptString(char *dst, const byte *scr, size_t size, const byte *password)
 {
-    cryptData(reinterpret_cast<byte *>(dst), reinterpret_cast<const byte *>(scr), size, password);
+    cryptData(as<byte *>(dst), as<const byte *>(scr), size, password);
     dst[size] = '\0';
 }
 

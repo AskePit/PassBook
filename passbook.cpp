@@ -1,6 +1,7 @@
-#include "PassBook.h"
-#include "Crypt.h"
-#include "Hash.h"
+#include "passbook.h"
+#include "crypt.h"
+#include "hash.h"
+#include "utils.h"
 #include <QFileInfo>
 #include <QStringBuilder>
 
@@ -36,14 +37,12 @@ int PassBook::verify(Master &master)
 
     QFile in(m_fileName);
     in.open(QIODevice::ReadOnly);
-    in.read(reinterpret_cast<char *>(fileHash), SIZE_OF_HASH);
+    in.read(as<char *>(fileHash), SIZE_OF_HASH);
     in.close();
 
     byte realHash[SIZE_OF_HASH];
-    {
-        MasterDoor door(master);
-        hash(realHash, door.get(), gost::SIZE_OF_KEY);
-    }
+    MasterDoor door(master);
+    hash(realHash, door.get(), gost::SIZE_OF_KEY);
 
     return memcmp(fileHash, realHash, SIZE_OF_HASH) == 0
             ? static_cast<int>(sizeofFile - SIZE_OF_HASH)
@@ -66,42 +65,42 @@ bool PassBook::load(Master &master)
     byte* cryptedMessage = new byte[sizeofMessage];
     byte* decryptedMessage = new byte[sizeofMessage];
 
-    f.read(reinterpret_cast<char*>(cryptedMessage), sizeofMessage);
+    f.read(as<char*>(cryptedMessage), sizeofMessage);
     f.close();
 
     {
         Crypter crypter;
         MasterDoor door(master);
-        crypter.decryptString((char*)decryptedMessage, cryptedMessage, sizeofMessage, door.get());
+        crypter.cryptData(decryptedMessage, cryptedMessage, sizeofMessage, door.get());
     }
 
-    byte* cutHead   = decryptedMessage;
-    byte* cutCursor = decryptedMessage;
-    byte* cursorEnd = decryptedMessage + sizeofMessage;
+    byte* head   = decryptedMessage;
+    byte* cursor = decryptedMessage;
+    byte* end = decryptedMessage + sizeofMessage;
     Note note;
 
-    while(cutCursor != cursorEnd) {
-        if(*cutCursor < SOURCE_END || *cutCursor > PASS_END) {
-            ++cutCursor;
+    while(cursor != end) {
+        if(*cursor < SOURCE_END || *cursor > PASS_END) {
+            ++cursor;
             continue;
         }
 
-        byte code = *cutCursor;
+        byte code = *cursor;
 
-        *cutCursor = 0x0;
-        ++cutCursor;
+        *cursor = 0x0;
+        ++cursor;
 
         switch(code) {
-            case SOURCE_END: note.source = (char*)cutHead; break;
-            case URL_END:    note.URL    = (char*)cutHead; break;
-            case LOGIN_END:  note.login  = (char*)cutHead; break;
-            case PASS_END:   note.password.load((char*)cutHead, master);
+            case SOURCE_END: note.source = (char*)head; break;
+            case URL_END:    note.URL    = (char*)head; break;
+            case LOGIN_END:  note.login  = (char*)head; break;
+            case PASS_END:   note.password.load((char*)head, master);
                              m_notes.push_back(note);
                              break;
             default: break;
         }
 
-        cutHead = cutCursor;
+        head = cursor;
     }
 
     delete [] cryptedMessage;
