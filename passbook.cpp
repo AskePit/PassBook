@@ -3,14 +3,6 @@
 #include "hash.h"
 #include "utils.h"
 #include <QFileInfo>
-#include <QStringBuilder>
-
-//const size_t PassBook::SIZEOF_KEY = 32;
-
-const char PassBook::SOURCE_END = 0x7;
-const char PassBook::URL_END    = 0x8;
-const char PassBook::LOGIN_END  = 0x9;
-const char PassBook::PASS_END   = 0xA;
 
 PassBook::PassBook(const QString &fileName)
     : m_loaded(false)
@@ -23,7 +15,7 @@ static inline quint64 fileSize(const QString &fileName)
     return info.size();
 }
 
-int PassBook::verify(Master &master)
+int PassBook::verify(const Master &master)
 {
     using namespace gost;
 
@@ -49,7 +41,44 @@ int PassBook::verify(Master &master)
             : -1;
 }
 
-bool PassBook::load(Master &master)
+static const char SOURCE_END = 0x7;
+static const char URL_END    = 0x8;
+static const char LOGIN_END  = 0x9;
+static const char PASS_END   = 0xA;
+
+static void parseData(const SecureBytes &data, QVector<Note> &notes, const Master &master)
+{
+    const char* head = data.data();
+    const char* cursor = head;
+    const char* end = head + data.size();
+    Note note;
+
+    while(cursor != end) {
+        if(*cursor < SOURCE_END || *cursor > PASS_END) {
+            ++cursor;
+            continue;
+        }
+
+        byte code = *cursor;
+
+        SecureBytes fieldData(data.mid(head - data.data(), cursor - head));
+        QString str(std::move(fieldData));
+
+        switch(code) {
+            case SOURCE_END: note.source = str; break;
+            case URL_END:    note.URL    = str; break;
+            case LOGIN_END:  note.login  = str; break;
+            case PASS_END:   note.password.load(std::move(str), master);
+                             notes.push_back(note);
+                             break;
+            default: break;
+        }
+
+        head = ++cursor;
+    }
+}
+
+bool PassBook::load(const Master &master)
 {
     using namespace gost;
 
@@ -62,87 +91,55 @@ bool PassBook::load(Master &master)
     f.open(QIODevice::ReadOnly);
     f.seek(SIZE_OF_HASH);
 
-    byte* cryptedMessage = new byte[sizeofMessage];
-    byte* decryptedMessage = new byte[sizeofMessage];
+    SecureBytes cryptedData(sizeofMessage);
+    SecureBytes data(sizeofMessage);
 
-    f.read(as<char*>(cryptedMessage), sizeofMessage);
+    f.read(as<char*>(cryptedData), sizeofMessage);
     f.close();
 
     {
         Crypter crypter;
         MasterDoor door(master);
-        crypter.cryptData(decryptedMessage, cryptedMessage, sizeofMessage, door.get());
+        crypter.cryptData(as<byte*>(data), as<byte*>(cryptedData), sizeofMessage, door.get());
     }
 
-    byte* head   = decryptedMessage;
-    byte* cursor = decryptedMessage;
-    byte* end = decryptedMessage + sizeofMessage;
-    Note note;
-
-    while(cursor != end) {
-        if(*cursor < SOURCE_END || *cursor > PASS_END) {
-            ++cursor;
-            continue;
-        }
-
-        byte code = *cursor;
-
-        *cursor = 0x0;
-        ++cursor;
-
-        switch(code) {
-            case SOURCE_END: note.source = (char*)head; break;
-            case URL_END:    note.URL    = (char*)head; break;
-            case LOGIN_END:  note.login  = (char*)head; break;
-            case PASS_END:   note.password.load((char*)head, master);
-                             m_notes.push_back(note);
-                             break;
-            default: break;
-        }
-
-        head = cursor;
-    }
-
-    delete [] cryptedMessage;
+    parseData(data, m_notes, master);
 
     return m_loaded = true;
 }
 
-void PassBook::save(Master &master)
+void PassBook::save(const Master &master)
 {
     using namespace gost;
 
-    QByteArray bytes;
+    SecureBytes data;
 
     for(const auto &note : m_notes) {
-        bytes += note.source;
-        bytes += SOURCE_END;
-        bytes += note.URL;
-        bytes += URL_END;
-        bytes += note.login;
-        bytes += LOGIN_END;
-        bytes += note.password.get(master);
-        bytes += PASS_END;
+        data += note.source;
+        data += SOURCE_END;
+        data += note.URL;
+        data += URL_END;
+        data += note.login;
+        data += LOGIN_END;
+        data += note.password.get(master);
+        data += PASS_END;
     }
 
-    const int size = bytes.size();
+    const int size = data.size();
 
-    const char* decryptedMessage = bytes.data();
-    byte* cryptedMessage = new byte[size];
-    byte fileHash[SIZE_OF_HASH];
+    SecureBytes cryptedData(size);
+    SecureBytes fileHash(SIZE_OF_HASH);
 
     {
         Crypter crypter;
         MasterDoor door(master);
-        crypter.cryptString(cryptedMessage, decryptedMessage, door.get());
-        hash(fileHash, door.get(), gost::SIZE_OF_KEY);
+        crypter.cryptData(as<byte*>(cryptedData), as<byte*>(data), size, door.get());
+        hash(as<byte*>(fileHash), door.get(), gost::SIZE_OF_KEY);
     }
 
     QFile f(m_fileName);
     f.open(QIODevice::WriteOnly | QIODevice::Truncate);
-    f.write((char*)fileHash, SIZE_OF_HASH);
-    f.write((char*)cryptedMessage, size);
+    f.write(as<char*>(fileHash), SIZE_OF_HASH);
+    f.write(as<char*>(cryptedData), size);
     f.close();
-
-    delete [] cryptedMessage;
 }

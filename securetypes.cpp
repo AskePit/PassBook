@@ -14,7 +14,7 @@ SecureString::~SecureString()
 }
 
 SecureBytes::SecureBytes() : QByteArray() {}
-SecureBytes::SecureBytes(int size, char c) : QByteArray(size, c) {}
+SecureBytes::SecureBytes(int size) : QByteArray(size, 0) {}
 SecureBytes::SecureBytes(SecureString &&str) : QByteArray(str.toUtf8()) {}
 SecureBytes::SecureBytes(QByteArray &&bytes) : QByteArray(bytes) {}
 
@@ -25,14 +25,14 @@ SecureBytes::~SecureBytes()
 
 Master::Master(SecureString &&key)
     : m_data(key.toUtf8())
-    , m_x(gost::SIZE_OF_KEY, 0)
+    , m_x(gost::SIZE_OF_KEY)
 {
     init();
 }
 
 Master::Master(SecureBytes &&key)
     : m_data(key)
-    , m_x(gost::SIZE_OF_KEY, 0)
+    , m_x(gost::SIZE_OF_KEY)
 {
     init();
 }
@@ -66,18 +66,18 @@ static inline void xor_arrays(QByteArray &to, const QByteArray &from)
     );
 }
 
-void Master::lock()
+void Master::lock() const
 {
     memrandomset(as<byte*>(m_x), gost::SIZE_OF_KEY);
     xor_arrays(m_data, m_x);
 }
 
-void Master::unlock()
+void Master::unlock() const
 {
     xor_arrays(m_data, m_x);
 }
 
-MasterDoor::MasterDoor(Master &master)
+MasterDoor::MasterDoor(const Master &master)
     : m_master(master)
 {
     m_master.unlock();
@@ -93,12 +93,12 @@ byte *MasterDoor::get()
     return as<byte*>(m_master.m_data);
 }
 
-Password::Password(QString &&pass, Master &master)
+Password::Password(QString &&pass, const Master &master)
 {
     load(std::move(pass), master);
 }
 
-void Password::load(QString &&pass, Master &master)
+void Password::load(QString &&pass, const Master &master)
 {
     SecureBytes bytes(std::move(pass));
 
@@ -112,13 +112,13 @@ void Password::load(QString &&pass, Master &master)
     m_loaded = true;
 }
 
-SecureString Password::get(Master &master) const
+SecureString Password::get(const Master &master) const
 {
     if(m_cryptedPass.isEmpty()) {
         return QString();
     }
 
-    SecureBytes pass(m_cryptedPass.size(), 0);
+    SecureBytes pass(m_cryptedPass.size());
 
     gost::Crypter crypter;
     MasterDoor door(master);

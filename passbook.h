@@ -1,12 +1,8 @@
 #ifndef PASSBOOK_H
 #define PASSBOOK_H
 
-#include "platform.h"
-
-#include <QString>
-#include <QVector>
-
 #include "securetypes.h"
+#include <QVector>
 
 struct Note
 {
@@ -18,15 +14,10 @@ struct Note
 
 class PassBook {
 public:
-    static const char SOURCE_END;
-    static const char URL_END;
-    static const char LOGIN_END;
-    static const char PASS_END;
-
     PassBook(const QString &fileName);
-    int verify(Master &master); // returns sizeOfFile OR -1 in case of failure
-    bool load(Master &master);
-    void save(Master &master);
+    int verify(const Master &master); // returns sizeOfFile OR -1 in case of failure
+    bool load(const Master &master);
+    void save(const Master &master);
     QVector<Note>& getNotes() { return m_notes; }
 
 private:

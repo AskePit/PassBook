@@ -15,7 +15,7 @@ class SecureBytes : public QByteArray
 {
 public:
     SecureBytes();
-    SecureBytes(int size, char c);
+    SecureBytes(int size);
     explicit SecureBytes(SecureString &&str);
     SecureBytes(QByteArray &&bytes);
 
@@ -30,34 +30,34 @@ public:
     ~Master();
 
 private:
-    SecureBytes m_data;
-    SecureBytes m_x;
+    mutable SecureBytes m_data;
+    mutable SecureBytes m_x;
 
     void init();
-    void lock();
-    void unlock();
+    void lock() const;
+    void unlock() const;
     friend class MasterDoor;
 };
 
 class MasterDoor {
 public:
-    explicit MasterDoor(Master &master);
+    explicit MasterDoor(const Master &master);
     ~MasterDoor();
     byte *get();
 private:
-    Master &m_master;
+    const Master &m_master;
 };
 
 class Password
 {
 public:
     Password() = default;
-    Password(QString &&pass, Master &master);
+    Password(QString &&pass, const Master &master);
 
-    void load(QString &&pass, Master &master);
+    void load(QString &&pass, const Master &master);
     bool isLoaded() const { return m_loaded; }
 
-    SecureString get(Master &master) const;
+    SecureString get(const Master &master) const;
 
 private:
     bool m_loaded = false;
