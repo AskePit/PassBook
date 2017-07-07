@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QModelIndex>
 #include "securetypes.h"
+#include "utils.h"
 
 class PassBook;
 
@@ -19,30 +20,30 @@ class PassBookForm : public QWidget
 
 public:
 
-    enum ColumnName {
-        NUMBER_COL,
-        RESOURCE_COL,
-        URL_COL,
-        LOGIN_COL,
-        PASSWORD_COL,
-        END_OF_COL
-    };
+    enum_class(Column) {
+        Id = 0,
+        Name,
+        Url,
+        Login,
+        Password,
+        End
+    } enum_end;
 
     explicit PassBookForm(PassBook* passBook, QString login, const Master &master, QWidget *parent = 0);
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
     void print_notes();
-    void sortIDs();
+    void sortIds();
 
 private slots:
     void edit_password(QString &p);
-    void gen_password(int n, int mode);
+    void gen_password(int n, PasswordType::type type);
     void on_addButton_clicked();
     void on_deleteButton_clicked();
-    void on_UP_clicked();
-    void on_DOWN_clicked();
-    void on_SAVE_clicked();
+    void on_upButton_clicked();
+    void on_downButton_clicked();
+    void on_saveButton_clicked();
     void on_backButton_clicked();
     void on_keyGen_clicked();
     void doubleClickReact(const QModelIndex& idx);

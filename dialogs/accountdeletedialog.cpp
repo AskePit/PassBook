@@ -3,9 +3,9 @@
 
 #include <QAbstractButton>
 
-AccountDeleteDialog::AccountDeleteDialog(const QString &login, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::AccountDeleteDialog)
+AccountDeleteDialog::AccountDeleteDialog(const QString &login, QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::AccountDeleteDialog)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Dialog);

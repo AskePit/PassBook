@@ -2,7 +2,7 @@
 #define INSTRUMENTS_H
 
 #include <QString>
-#include <vector>
+#include <QVector>
 #include "platform.h"
 
 class QWidget;
@@ -21,7 +21,29 @@ inline auto as(IN &t) -> decltype(as<OUT>(t.data())) {
     return as<OUT>(t.data());
 }
 
-QString passGenerate(int n, int mode);
+enum_class (PasswordType) {
+    Letters = 0,
+    LettersAndDigits,
+    Standard,
+    Advanced
+
+enum_interface
+    static QString toString(PasswordType::type t) {
+        switch(t) {
+            case Letters:          return "Letters";
+            case LettersAndDigits: return "Letters & Digits";
+            default:
+            case Standard:         return "Standard";
+            case Advanced:         return "Advanced";
+        }
+    }
+
+    static QVector<PasswordType::type> iterate() {
+        return { Letters, LettersAndDigits, Standard, Advanced };
+    }
+};
+
+QString passGenerate(int n, PasswordType::type type);
 void allignWindowToCenter(QWidget *w);
 
 /*

@@ -1,9 +1,9 @@
 #include "accountcreatedialog.h"
 #include "ui_accountcreatedialog.h"
 
-AccountCreateDialog::AccountCreateDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::AccountCreateDialog)
+AccountCreateDialog::AccountCreateDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::AccountCreateDialog)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Dialog);

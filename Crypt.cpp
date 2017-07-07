@@ -189,8 +189,8 @@ void Crypter::setTable(const byte *table)
 {
     const u8(*raw)[16] = as<const u8(*)[16]>(table);
 
-	for (u8 i = 0, j = 0; i < 4; i++, j += 2) {
-		for (u16 k = 0; k < 256; k++) {
+    for (u8 i = 0, j = 0; i < 4; ++i, j += 2) {
+        for (u16 k = 0; k < 256; ++k) {
 			u32 &S = SBox[i][k];
 
 			S = raw[j][k & 0x0f] | raw[j + 1][k >> 4] << 4;

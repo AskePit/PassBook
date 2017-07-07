@@ -24,4 +24,8 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
+#define enum_class(x) class x { public: enum type
+#define enum_interface };
+#define enum_end ;}
+
 #endif // PLATFORM_INCLUDE

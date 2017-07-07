@@ -2,6 +2,7 @@
 #define KEYGENDIALOG_H
 
 #include <QDialog>
+#include "utils.h"
 
 namespace Ui {
 class KeyGenDialog;
@@ -16,7 +17,7 @@ public:
     ~KeyGenDialog();
 
 signals:
-    void sendKeyParams(int n, int mode);
+    void sendKeyParams(int n, PasswordType::type type);
 
 private slots:
     void on_pushButton_clicked();

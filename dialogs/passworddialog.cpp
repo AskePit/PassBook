@@ -14,9 +14,9 @@
 
 static const QString ACCOUNT_EXT(".dat");
 
-PasswordDialog::PasswordDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::PasswordDialog)
+PasswordDialog::PasswordDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::PasswordDialog)
 {
     ui->setupUi(this);
     allignWindowToCenter(this);
@@ -132,11 +132,11 @@ void PasswordDialog::createAccount(const QString &log, QString &key)
 
     QString logFile = log + ACCOUNT_EXT;
 
-    byte hsh[gost::SIZE_OF_HASH];
+    SecureBytes hsh(gost::SIZE_OF_HASH);
 
     {
         MasterDoor door(master);
-        gost::hash(hsh, door.get(), gost::SIZE_OF_KEY);
+        gost::hash(as<byte*>(hsh), door.get(), gost::SIZE_OF_KEY);
     }
 
     QFile f(logFile);

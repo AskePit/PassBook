@@ -19,18 +19,19 @@ void memrandomset(byte* data, size_t size)
     }
 }
 
-QString passGenerate(int n, int mode)
+QString passGenerate(int n, PasswordType::type type)
 {
     srand((unsigned int)time(NULL));
 
     QString symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-    if(mode>1) symbols += "0123456789";
-    if(mode>2) symbols += ".,/-_";
-    if(mode>3) symbols += "!#$%&()*+[]\\^{|}";
+    if(type > PasswordType::Letters) symbols += "0123456789";
+    if(type > PasswordType::LettersAndDigits) symbols += ".,/-_";
+    if(type > PasswordType::Standard) symbols += "!#$%&()*+[]\\^{|}";
 
     QString pass;
-    for(int i = 0; i<n; i++) pass += symbols[rand()%symbols.size()];
+    for(int i = 0; i<n; ++i) {
+        pass += symbols[rand()%symbols.size()];
+    }
 
     return pass;
 }

@@ -25,20 +25,19 @@ int PassBook::verify(const Master &master)
         return false;
     }
 
-    byte fileHash[SIZE_OF_HASH];
+    SecureBytes fileHash(SIZE_OF_HASH);
 
     QFile in(m_fileName);
     in.open(QIODevice::ReadOnly);
     in.read(as<char *>(fileHash), SIZE_OF_HASH);
     in.close();
 
-    byte realHash[SIZE_OF_HASH];
+    SecureBytes realHash(SIZE_OF_HASH);
     MasterDoor door(master);
-    hash(realHash, door.get(), gost::SIZE_OF_KEY);
+    hash(as<byte*>(realHash), door.get(), gost::SIZE_OF_KEY);
 
-    return memcmp(fileHash, realHash, SIZE_OF_HASH) == 0
-            ? static_cast<int>(sizeofFile - SIZE_OF_HASH)
-            : -1;
+    return fileHash == realHash ? static_cast<int>(sizeofFile - SIZE_OF_HASH)
+                                : -1;
 }
 
 static const char SOURCE_END = 0x7;
