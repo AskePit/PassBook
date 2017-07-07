@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ProfileCreateDialog</class>
- <widget class="QDialog" name="ProfileCreateDialog">
+ <class>AccountCreateDialog</class>
+ <widget class="QDialog" name="AccountCreateDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Create Profile</string>
+   <string>Create Account</string>
   </property>
   <widget class="QLineEdit" name="loginLine">
    <property name="geometry">

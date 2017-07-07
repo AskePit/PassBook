@@ -2,8 +2,8 @@
 #include "ui_passworddialog.h"
 
 #include "passbookform.h"
-#include "profiledeletedialog.h"
-#include "profilecreatedialog.h"
+#include "accountdeletedialog.h"
+#include "accountcreatedialog.h"
 
 #include "utils.h"
 #include "crypt.h"
@@ -12,7 +12,7 @@
 
 #include <QDir>
 
-static const QString PROFILE_EXT(".dat");
+static const QString ACCOUNT_EXT(".dat");
 
 PasswordDialog::PasswordDialog(QWidget *parent) :
     QDialog(parent),
@@ -22,12 +22,12 @@ PasswordDialog::PasswordDialog(QWidget *parent) :
     allignWindowToCenter(this);
     setAttribute(Qt::WA_DeleteOnClose);
 
-    QString profilesPath("");
-    QString filter(QString("*%1").arg(PROFILE_EXT));
+    QString accountsPath("");
+    QString filter(QString("*%1").arg(ACCOUNT_EXT));
     int filterLength = filter.length() - 1;
 
-    QDir profilesDir(profilesPath, filter, QDir::Name, QDir::Files | QDir::Hidden | QDir::NoSymLinks);
-    QFileInfoList fileList = profilesDir.entryInfoList();
+    QDir accountsDir(accountsPath, filter, QDir::Name, QDir::Files | QDir::Hidden | QDir::NoSymLinks);
+    QFileInfoList fileList = accountsDir.entryInfoList();
 
     for(const auto &file : fileList) {
         QString str(file.fileName());
@@ -50,11 +50,11 @@ PasswordDialog::~PasswordDialog()
 void PasswordDialog::on_enterButton_clicked()
 {
     ui->msgLabel->clear();
-    QString filename(ui->loginBox->currentText() + PROFILE_EXT);
+    QString filename(ui->loginBox->currentText() + ACCOUNT_EXT);
 
     QFile f(filename);
     if (!f.open(QIODevice::ReadOnly)) {
-        ui->msgLabel->setText("Profile log in error");
+        ui->msgLabel->setText("Account log in error");
         return;
     }
 
@@ -78,11 +78,11 @@ void PasswordDialog::on_enterButton_clicked()
 void PasswordDialog::on_deleteButton_clicked()
 {
     ui->msgLabel->clear();
-    QString filename(ui->loginBox->currentText() + PROFILE_EXT);
+    QString filename(ui->loginBox->currentText() + ACCOUNT_EXT);
 
     QFile f(filename);
     if (!f.open(QIODevice::ReadOnly)) {
-        ui->msgLabel->setText("Profile error");
+        ui->msgLabel->setText("Account error");
         return;
     }
 
@@ -96,21 +96,18 @@ void PasswordDialog::on_deleteButton_clicked()
         return;
     }
 
-    ProfileDeleteDialog *d = new ProfileDeleteDialog;
-
-    d->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Dialog);
-    d->set_login(ui->loginBox->currentText());
+    AccountDeleteDialog *d = new AccountDeleteDialog(ui->loginBox->currentText());
     d->show();
 
-    connect(d, &ProfileDeleteDialog::accept_deleting, this, &PasswordDialog::delete_profile);
+    connect(d, &AccountDeleteDialog::accept_deleting, this, &PasswordDialog::deleteAccount);
 }
 
-void PasswordDialog::delete_profile()
+void PasswordDialog::deleteAccount()
 {
-    QString filename = ui->loginBox->currentText() + PROFILE_EXT;
+    QString filename = ui->loginBox->currentText() + ACCOUNT_EXT;
     QFile(filename).remove();
 
-    ui->msgLabel->setText("Profile \"" + ui->loginBox->currentText()+"\" deleted");
+    ui->msgLabel->setText("Account \"" + ui->loginBox->currentText()+"\" deleted");
     ui->loginBox->removeItem(ui->loginBox->currentIndex());
     ui->passwordLine->clear();
 
@@ -123,19 +120,17 @@ void PasswordDialog::delete_profile()
 
 void PasswordDialog::on_createButton_clicked()
 {
-    ProfileCreateDialog *d = new ProfileCreateDialog;
-
-    d->setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Dialog);
+    AccountCreateDialog *d = new AccountCreateDialog;
     d->show();
 
-    connect(d, &ProfileCreateDialog::send_profile_attr, this, &PasswordDialog::create_profile);
+    connect(d, &AccountCreateDialog::sendAccountCredentials, this, &PasswordDialog::createAccount);
 }
 
-void PasswordDialog::create_profile(const QString &log, QString &key)
+void PasswordDialog::createAccount(const QString &log, QString &key)
 {
     Master master(std::move(key));
 
-    QString logFile = log + PROFILE_EXT;
+    QString logFile = log + ACCOUNT_EXT;
 
     byte hsh[gost::SIZE_OF_HASH];
 

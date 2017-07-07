@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ProfileDeleteDialog</class>
- <widget class="QDialog" name="ProfileDeleteDialog">
+ <class>AccountDeleteDialog</class>
+ <widget class="QDialog" name="AccountDeleteDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Delete Profile</string>
+   <string>Delete Account</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
@@ -50,30 +50,17 @@
      <x>10</x>
      <y>10</y>
      <width>291</width>
-     <height>20</height>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
-    <string>Are you sure</string>
+    <string/>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
    </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>30</y>
-     <width>291</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>you want to delete profile?</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
+   <property name="wordWrap">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>
@@ -82,7 +69,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>ProfileDeleteDialog</receiver>
+   <receiver>AccountDeleteDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -98,7 +85,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>ProfileDeleteDialog</receiver>
+   <receiver>AccountDeleteDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

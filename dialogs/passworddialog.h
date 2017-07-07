@@ -2,7 +2,6 @@
 #define PASSWORDDIALOG_H
 
 #include <QDialog>
-#include "platform.h"
 
 namespace Ui {
 class PasswordDialog;
@@ -21,8 +20,8 @@ private slots:
     void on_deleteButton_clicked();
     void on_enterButton_clicked();
 
-    void create_profile(const QString &log, QString &key);
-    void delete_profile();
+    void createAccount(const QString &log, QString &key);
+    void deleteAccount();
 
 private:
     Ui::PasswordDialog *ui;
