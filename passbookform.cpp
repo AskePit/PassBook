@@ -2,6 +2,7 @@
 #include "ui_passbookform.h"
 #include <QSound>
 #include <QPainter>
+#include <QDebug>
 #include <QClipboard>
 #include "utils.h"
 #include "passbook.h"
@@ -27,7 +28,22 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, const Master &mast
     ui->passTable->setColumnWidth(Column::Login, 100);
     ui->passTable->setColumnWidth(Column::Password, 150);
 
+    addAction(ui->actionSave);
+
+    int maxRow = passBook->notes().size() + 1;
+    ui->IdBox->setMaximum(maxRow);
+    ui->IdBox->setValue(maxRow);
+
+    enableControls(false);
+
     connect(ui->passTable, &QTableWidget::doubleClicked, this, &PassBookForm::doubleClickReact);
+    connect(ui->passTable, &QTableWidget::currentCellChanged, [this](int cRow, int cColumn, int pRow, int pColumn) {
+        Q_UNUSED(pRow);
+        Q_UNUSED(pColumn);
+        Q_UNUSED(cColumn);
+
+        enableControls(cRow != -1);
+    });
 }
 
 PassBookForm::~PassBookForm()
@@ -82,19 +98,19 @@ void PassBookForm::renderPasswordPixmap(QString &&p, int row)
     picMap[hashPixmap(pixmap)] = keeper;
 }
 
-void PassBookForm::edit_password(QString &p)
+void PassBookForm::editPassword(QString &p)
 {
     renderPasswordPixmap(std::move(p), ui->passTable->currentRow());
 }
 
-void PassBookForm::gen_password(int n, PasswordType::type type)
+void PassBookForm::genPassword(int n, PasswordType::type type)
 {
     renderPasswordPixmap(passGenerate(n, type), ui->passTable->currentRow());
 }
 
-void PassBookForm::print_notes()
+void PassBookForm::updateTable()
 {
-    const QVector<Note> &notes = passBook->getNotes();
+    const QVector<Note> &notes = passBook->notes();
 
     while(ui->passTable->rowCount()) {
         ui->passTable->removeRow(0);
@@ -200,9 +216,9 @@ void PassBookForm::on_downButton_clicked()
     ui->passTable->selectRow(ui->passTable->currentRow()+1);
 }
 
-void PassBookForm::on_saveButton_clicked()
+void PassBookForm::save()
 {
-    QVector<Note> &notes = passBook->getNotes();
+    QVector<Note> &notes = passBook->notes();
     notes.clear();
 
     for(int i = 0; i<ui->passTable->rowCount(); ++i) {
@@ -236,7 +252,7 @@ void PassBookForm::on_keyGen_clicked()
     KeyGenDialog *d = new KeyGenDialog;
     d->show();
 
-    connect(d, &KeyGenDialog::sendKeyParams, this, &PassBookForm::gen_password);
+    connect(d, &KeyGenDialog::sendKeyParams, this, &PassBookForm::genPassword);
 }
 
 void PassBookForm::doubleClickReact(const QModelIndex& idx)
@@ -250,11 +266,19 @@ void PassBookForm::doubleClickReact(const QModelIndex& idx)
     }
 }
 
+void PassBookForm::enableControls(bool enable)
+{
+    ui->downButton->setEnabled(enable);
+    ui->upButton->setEnabled(enable);
+    ui->keyGen->setEnabled(enable);
+    ui->keyEdit->setEnabled(enable);
+}
+
 void PassBookForm::closeEvent(QCloseEvent *event) {
     Q_UNUSED(event);
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->clear();
-    on_saveButton_clicked();
+    save();
 }
 
 void PassBookForm::on_keyEdit_clicked()
@@ -265,5 +289,10 @@ void PassBookForm::on_keyEdit_clicked()
     KeyEditDialog *d = new KeyEditDialog(QString(picMap[hashPixmap(p)].get(master)));
     d->show();
 
-    connect(d, &KeyEditDialog::sendKey, this, &PassBookForm::edit_password);
+    connect(d, &KeyEditDialog::sendKey, this, &PassBookForm::editPassword);
+}
+
+void PassBookForm::on_actionSave_triggered()
+{
+    save();
 }

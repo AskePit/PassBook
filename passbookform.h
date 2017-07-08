@@ -33,22 +33,24 @@ public:
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
-    void print_notes();
+    void updateTable();
     void sortIds();
 
 private slots:
-    void edit_password(QString &p);
-    void gen_password(int n, PasswordType::type type);
     void on_addButton_clicked();
     void on_deleteButton_clicked();
     void on_upButton_clicked();
     void on_downButton_clicked();
-    void on_saveButton_clicked();
     void on_backButton_clicked();
     void on_keyGen_clicked();
-    void doubleClickReact(const QModelIndex& idx);
-
     void on_keyEdit_clicked();
+    void on_actionSave_triggered();
+
+    void save();
+    void editPassword(QString &p);
+    void genPassword(int n, PasswordType::type type);
+    void doubleClickReact(const QModelIndex& idx);
+    void enableControls(bool enable);
 
 private:
     Ui::PassBookForm *ui;

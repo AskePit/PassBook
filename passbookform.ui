@@ -438,38 +438,6 @@
         </spacer>
        </item>
        <item>
-        <widget class="QCommandLinkButton" name="saveButton">
-         <property name="minimumSize">
-          <size>
-           <width>91</width>
-           <height>41</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>91</width>
-           <height>41</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Save</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
         <widget class="QPushButton" name="keyGen">
          <property name="minimumSize">
           <size>
@@ -493,6 +461,20 @@
     </layout>
    </item>
   </layout>
+  <action name="actionSave">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Book</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

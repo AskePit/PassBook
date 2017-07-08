@@ -18,7 +18,7 @@ public:
     int verify(const Master &master); // returns sizeOfFile OR -1 in case of failure
     bool load(const Master &master);
     void save(const Master &master);
-    QVector<Note>& getNotes() { return m_notes; }
+    QVector<Note>& notes() { return m_notes; }
 
 private:
     bool m_loaded;

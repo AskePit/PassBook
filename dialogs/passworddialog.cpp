@@ -69,7 +69,7 @@ void PasswordDialog::on_enterButton_clicked()
     }
 
     PassBookForm *passBookForm = new PassBookForm(passBook, ui->loginBox->currentText(), master);
-    passBookForm->print_notes();
+    passBookForm->updateTable();
     passBookForm->show();
 
     close();
@@ -146,7 +146,7 @@ void PasswordDialog::createAccount(const QString &log, QString &key)
 
     PassBook* passBook = new PassBook(logFile);
     PassBookForm *passBookForm = new PassBookForm(passBook, ui->loginBox->currentText(), master);
-    passBookForm->print_notes();
+    passBookForm->updateTable();
     passBookForm->show();
 
     close();
