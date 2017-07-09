@@ -11,6 +11,7 @@ PassBook::PassBook(const QString &fileName, const Master &master)
     : m_loaded(false)
     , m_master(master)
     , m_fileName(fileName)
+    , m_changed(false)
 {}
 
 static inline quint64 fileSize(const QString &fileName)
@@ -113,6 +114,10 @@ bool PassBook::load()
 
 void PassBook::save()
 {
+    if(!m_changed) {
+        return;
+    }
+
     using namespace gost;
 
     SecureBytes data;
@@ -145,6 +150,8 @@ void PassBook::save()
     f.write(as<char*>(fileHash), SIZE_OF_HASH);
     f.write(as<char*>(cryptedData), size);
     f.close();
+
+    m_changed = false;
 }
 
 SecureString PassBook::getPassword(int row) const
@@ -158,6 +165,7 @@ void PassBook::setPassword(int row, SecureString &&password)
 
     QModelIndex idx = index(row, Column::Password);
     emit dataChanged(idx, idx, {Qt::DecorationRole});
+    m_changed = true;
 }
 
 bool PassBook::noteUp(int i)
@@ -167,6 +175,8 @@ bool PassBook::noteUp(int i)
     }
     m_notes.swap(i, i-1);
     emit dataChanged(index(i, Column::Name), index(i+1, Column::Password), {Qt::DisplayRole, Qt::DecorationRole});
+    m_changed = true;
+
     return true;
 }
 
@@ -177,6 +187,8 @@ bool PassBook::noteDown(int i)
     }
     m_notes.swap(i, i+1);
     emit dataChanged(index(i-1, Column::Name), index(i, Column::Password), {Qt::DisplayRole, Qt::DecorationRole});
+    m_changed = true;
+
     return true;
 }
 
@@ -285,6 +297,7 @@ bool PassBook::setData(const QModelIndex &index, const QVariant &value, int role
 
     if(changed) {
         emit dataChanged(index, index, {Qt::DisplayRole});
+        m_changed = true;
     }
 
     return changed;
@@ -315,6 +328,7 @@ bool PassBook::insertRows(int row, int count, const QModelIndex &parent)
     }
     endInsertRows();
 
+    m_changed = true;
     return true;
 }
 
@@ -326,5 +340,6 @@ bool PassBook::removeRows(int row, int count, const QModelIndex &parent)
     }
     endRemoveRows();
 
+    m_changed = true;
     return true;
 }

@@ -51,6 +51,7 @@ private:
     Master m_master;
     QList<Note> m_notes;
     QString m_fileName;
+    bool m_changed;
 };
 
 #endif //PASSBOOK_H
