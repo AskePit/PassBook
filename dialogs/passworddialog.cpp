@@ -61,15 +61,14 @@ void PasswordDialog::on_enterButton_clicked()
     Master master(std::move(ui->passwordLine->text()));
     ui->passwordLine->clear();
 
-    PassBook* passBook = new PassBook(filename);
-    if(!passBook->load(master)) {
+    PassBook* passBook = new PassBook(filename, master);
+    if(!passBook->load()) {
         delete passBook;
         ui->msgLabel->setText("Wrong password");
         return;
     }
 
-    PassBookForm *passBookForm = new PassBookForm(passBook, ui->loginBox->currentText(), master);
-    passBookForm->updateTable();
+    PassBookForm *passBookForm = new PassBookForm(passBook, ui->loginBox->currentText());
     passBookForm->show();
 
     close();
@@ -86,12 +85,11 @@ void PasswordDialog::on_deleteButton_clicked()
         return;
     }
 
-    PassBook passBook(filename);
-
     Master master(std::move(ui->passwordLine->text()));
     ui->passwordLine->clear();
 
-    if(passBook.verify(master) < 0) {
+    PassBook passBook(filename, master);
+    if(passBook.verify() < 0) {
         ui->msgLabel->setText("Wrong password");
         return;
     }
@@ -130,7 +128,7 @@ void PasswordDialog::createAccount(const QString &log, QString &key)
 {
     Master master(std::move(key));
 
-    QString logFile = log + ACCOUNT_EXT;
+    QString accountFile = log + ACCOUNT_EXT;
 
     SecureBytes hsh(gost::SIZE_OF_HASH);
 
@@ -139,14 +137,13 @@ void PasswordDialog::createAccount(const QString &log, QString &key)
         gost::hash(as<byte*>(hsh), door.get(), gost::SIZE_OF_KEY);
     }
 
-    QFile f(logFile);
+    QFile f(accountFile);
     f.open(QIODevice::WriteOnly);
     f.write(as<char*>(hsh), gost::SIZE_OF_HASH);
     f.close();
 
-    PassBook* passBook = new PassBook(logFile);
-    PassBookForm *passBookForm = new PassBookForm(passBook, ui->loginBox->currentText(), master);
-    passBookForm->updateTable();
+    PassBook* passBook = new PassBook(accountFile, master);
+    PassBookForm *passBookForm = new PassBookForm(passBook, ui->loginBox->currentText());
     passBookForm->show();
 
     close();

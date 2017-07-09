@@ -1,4 +1,4 @@
-QT += core gui widgets multimedia
+QT += core gui widgets
 
 TARGET = PitM_PB
 TEMPLATE = app

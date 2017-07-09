@@ -1,22 +1,24 @@
 #include "keyeditdialog.h"
 #include "ui_keyeditdialog.h"
 
-#include "securetypes.h"
+#include "passbook.h"
 #include <QAbstractButton>
 
-KeyEditDialog::KeyEditDialog(const QString &p, QWidget *parent)
+KeyEditDialog::KeyEditDialog(PassBook &passBook, int row, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::KeyEditDialog)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
-    ui->lineEdit->setText(p);
+    ui->lineEdit->setFocus();
 
-    connect(ui->buttonBox, &QDialogButtonBox::clicked, [this] (QAbstractButton *button) {
+    ui->lineEdit->setText(QString(passBook.getPassword(row)));
+
+    connect(ui->buttonBox, &QDialogButtonBox::clicked, [&, row] (QAbstractButton *button) {
         bool ok = (QPushButton*)button == ui->buttonBox->button(QDialogButtonBox::Ok);
         if(ok) {
-            emit sendKey(ui->lineEdit->text());
+            passBook.setPassword(row, std::move(ui->lineEdit->text()));
         }
         close();
     });

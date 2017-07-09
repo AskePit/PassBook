@@ -1,32 +1,31 @@
 #include "passbookform.h"
 #include "ui_passbookform.h"
-#include <QSound>
-#include <QPainter>
-#include <QDebug>
+
 #include <QClipboard>
 #include "utils.h"
 #include "passbook.h"
-#include "crypt.h"
+
 #include "dialogs/passworddialog.h"
 #include "dialogs/keygendialog.h"
 #include "dialogs/keyeditdialog.h"
 
-PassBookForm::PassBookForm(PassBook* passBook, QString login, const Master &master, QWidget *parent)
+PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::PassBookForm)
     , login(login)
-    , master(master)
     , passBook(passBook)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     allignWindowToCenter(this);
 
-    ui->passTable->setColumnWidth(Column::Id, 30);
+    ui->passTable->setModel(passBook);
+
+    ui->passTable->setColumnWidth(Column::Id, 35);
     ui->passTable->setColumnWidth(Column::Name, 100);
     ui->passTable->setColumnWidth(Column::Url, 150);
     ui->passTable->setColumnWidth(Column::Login, 100);
-    ui->passTable->setColumnWidth(Column::Password, 150);
+    ui->passTable->setColumnWidth(Column::Password, 160);
 
     addAction(ui->actionSave);
 
@@ -36,14 +35,14 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, const Master &mast
 
     enableControls(false);
 
-    connect(ui->passTable, &QTableWidget::doubleClicked, this, &PassBookForm::doubleClickReact);
-    connect(ui->passTable, &QTableWidget::currentCellChanged, [this](int cRow, int cColumn, int pRow, int pColumn) {
-        Q_UNUSED(pRow);
-        Q_UNUSED(pColumn);
-        Q_UNUSED(cColumn);
+    connect(ui->passTable, &QTableView::doubleClicked, this, &PassBookForm::doubleClickReact);
 
-        enableControls(cRow != -1);
+    connect(ui->passTable->selectionModel(), &QItemSelectionModel::currentRowChanged, [this](const QModelIndex &current, const QModelIndex &previous) {
+        Q_UNUSED(previous);
+        enableControls(current.row());
     });
+
+    ui->passTable->setFocus();
 }
 
 PassBookForm::~PassBookForm()
@@ -51,12 +50,8 @@ PassBookForm::~PassBookForm()
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->clear();
     delete passBook;
-    ui->passTable->clear();
     delete ui;
 }
-
-static const int PIXMAP_W = 150;
-static const int PIXMAP_H = 50;
 
 static qint32 hashPixmap(const QPixmap& pix)
 {
@@ -76,168 +71,44 @@ static qint32 hashPixmap(const QPixmap& pix)
     return hash;
 }
 
-void PassBookForm::renderPasswordPixmap(QString &&p, int row)
-{
-    QFont font("Consolas", 10);
-    QFontMetrics fm(font);
-    int w = fm.width(p);
-
-    QPixmap pixmap(w, PIXMAP_H);
-    pixmap.fill();
-
-    QPainter painter(&pixmap);
-    painter.setFont(font);
-    painter.drawText(0, 17, w, PIXMAP_H, 0, p);
-
-    QTableWidgetItem* cell = new QTableWidgetItem();
-    cell->setData(Qt::DecorationRole, pixmap);
-    cell->setFlags(cell->flags() &= ~Qt::ItemIsEditable);
-    ui->passTable->setItem(row, Column::Password, cell);
-
-    Password keeper(std::move(p), master);
-    picMap[hashPixmap(pixmap)] = keeper;
-}
-
-void PassBookForm::editPassword(QString &p)
-{
-    renderPasswordPixmap(std::move(p), ui->passTable->currentRow());
-}
-
-void PassBookForm::genPassword(int n, PasswordType::type type)
-{
-    renderPasswordPixmap(passGenerate(n, type), ui->passTable->currentRow());
-}
-
-void PassBookForm::updateTable()
-{
-    const QVector<Note> &notes = passBook->notes();
-
-    while(ui->passTable->rowCount()) {
-        ui->passTable->removeRow(0);
-    }
-
-    for(int i = 0; i<notes.size(); ++i) {
-        const auto &note = notes[i];
-
-        ui->passTable->insertRow(i);
-        ui->passTable->setRowHeight(i, 20);
-
-        ui->passTable->setItem(i, Column::Id, new QTableWidgetItem(QString::number(i+1)));
-        ui->passTable->setItem(i, Column::Name, new QTableWidgetItem(note.source));
-        ui->passTable->setItem(i, Column::Url, new QTableWidgetItem(note.URL));
-        ui->passTable->setItem(i, Column::Login, new QTableWidgetItem(note.login));
-
-        QString &&p = note.password.get(master);
-
-        renderPasswordPixmap(std::move(p), i);
-
-        ui->passTable->item(i, Column::Id)->setTextAlignment(-3);
-    }
-}
-
-
-void PassBookForm::sortIds()
-{
-    for(int i = 0; i<ui->passTable->rowCount(); ++i) {
-        QTableWidgetItem *Item = new QTableWidgetItem(QString::number(i+1));
-        Item->setTextAlignment(-3);
-        ui->passTable->setItem(i, Column::Id, Item);
-    }
-}
-
 void PassBookForm::on_addButton_clicked()
 {
     int id = ui->IdBox->value()-1;
 
-    ui->passTable->insertRow(id);
-    ui->passTable->setRowHeight(id, 20);
+    passBook->insertRow(id);
 
-    ui->passTable->setItem(id, Column::Name, new QTableWidgetItem(""));
-    ui->passTable->setItem(id, Column::Url, new QTableWidgetItem(""));
-    ui->passTable->setItem(id, Column::Login, new QTableWidgetItem(""));
-
-    QTableWidgetItem* cell = new QTableWidgetItem();
-    cell->setFlags(cell->flags() &= ~Qt::ItemIsEditable);
-    ui->passTable->setItem(id, Column::Password, cell);
-
-    int maxRow = ui->passTable->rowCount()+1;
+    int maxRow = passBook->rowCount()+1;
     ui->IdBox->setMaximum(maxRow);
     ui->IdBox->setValue(maxRow);
-
-    sortIds();
 }
 
 void PassBookForm::on_deleteButton_clicked()
 {
-    ui->passTable->removeRow(ui->passTable->currentRow());
-    ui->IdBox->setValue(ui->passTable->rowCount()+1);
-    sortIds();
+    int row = ui->passTable->currentIndex().row();
+    passBook->removeRow(row);
 }
 
 void PassBookForm::on_upButton_clicked()
 {
-    if(ui->passTable->currentRow() <= 0) {
-        return;
+    int currentRow = ui->passTable->currentIndex().row();
+    bool ok = passBook->noteUp(currentRow);
+    if(ok) {
+        ui->passTable->selectRow(currentRow-1);
     }
-
-    int currRowNumber = ui->passTable->currentRow();
-
-    for(int columnIdx = Column::Name; columnIdx < Column::End; ++columnIdx) {
-        QTableWidgetItem* firstItem = ui->passTable->takeItem(currRowNumber-1, columnIdx);
-        QTableWidgetItem* secondItem = ui->passTable->takeItem(currRowNumber, columnIdx);
-
-        ui->passTable->setItem(currRowNumber, columnIdx, firstItem);
-        ui->passTable->setItem(currRowNumber-1, columnIdx, secondItem);
-    }
-
-    ui->passTable->selectRow(currRowNumber-1);
 }
 
 void PassBookForm::on_downButton_clicked()
 {
-    if(ui->passTable->currentRow() < 0) {
-        return;
+    int currentRow = ui->passTable->currentIndex().row();
+    bool ok = passBook->noteDown(ui->passTable->currentIndex().row());
+    if(ok) {
+        ui->passTable->selectRow(currentRow+1);
     }
-
-    if(ui->passTable->currentRow() >= ui->passTable->rowCount()-1) {
-        return;
-    }
-
-    int currRowNumber = ui->passTable->currentRow();
-
-    for(int columnIdx = Column::Name; columnIdx < Column::End; ++columnIdx) {
-        QTableWidgetItem* firstItem = ui->passTable->takeItem(currRowNumber, columnIdx);
-        QTableWidgetItem* secondItem = ui->passTable->takeItem(currRowNumber+1, columnIdx);
-
-        ui->passTable->setItem(currRowNumber+1, columnIdx, firstItem);
-        ui->passTable->setItem(currRowNumber, columnIdx, secondItem);
-    }
-
-    ui->passTable->selectRow(ui->passTable->currentRow()+1);
 }
 
 void PassBookForm::save()
 {
-    QVector<Note> &notes = passBook->notes();
-    notes.clear();
-
-    for(int i = 0; i<ui->passTable->rowCount(); ++i) {
-        struct Note note;
-        note.source = ui->passTable->item(i, Column::Name)->text();
-        note.URL    = ui->passTable->item(i, Column::Url)->text();
-        note.login  = ui->passTable->item(i, Column::Login)->text();
-
-        QVariant qvar = ui->passTable->item(i, Column::Password)->data(Qt::DecorationRole);
-        QPixmap p = qvar.value<QPixmap>();
-
-        note.password = picMap[hashPixmap(p)];
-        notes.push_back(note);
-    }
-
-    passBook->save(master);
-
-    QSound sound("Okay");
-    sound.play();
+    passBook->save();
 }
 
 void PassBookForm::on_backButton_clicked()
@@ -249,29 +120,35 @@ void PassBookForm::on_backButton_clicked()
 
 void PassBookForm::on_keyGen_clicked()
 {
-    KeyGenDialog *d = new KeyGenDialog;
+    KeyGenDialog *d = new KeyGenDialog(*passBook, ui->passTable->currentIndex().row());
     d->show();
-
-    connect(d, &KeyGenDialog::sendKeyParams, this, &PassBookForm::genPassword);
 }
 
 void PassBookForm::doubleClickReact(const QModelIndex& idx)
 {
     if(idx.column() == Column::Password) {
         QClipboard *clipboard = QApplication::clipboard();
-
-        QVariant qvar = ui->passTable->item(idx.row(), Column::Password)->data(Qt::DecorationRole);
-        QPixmap p = qvar.value<QPixmap>();
-        clipboard->setText( QString(picMap[hashPixmap(p)].get(master)) );
+        SecureString &&pass = passBook->getPassword(idx.row());
+        clipboard->setText( QString(std::move(pass)) );
     }
 }
 
-void PassBookForm::enableControls(bool enable)
+void PassBookForm::enableControls(int row)
 {
+    bool enable = row != -1;
+
     ui->downButton->setEnabled(enable);
     ui->upButton->setEnabled(enable);
     ui->keyGen->setEnabled(enable);
     ui->keyEdit->setEnabled(enable);
+
+    if(row == 0) {
+        ui->upButton->setEnabled(false);
+    }
+
+    if(row == passBook->rowCount()-1) {
+        ui->downButton->setEnabled(false);
+    }
 }
 
 void PassBookForm::closeEvent(QCloseEvent *event) {
@@ -283,13 +160,8 @@ void PassBookForm::closeEvent(QCloseEvent *event) {
 
 void PassBookForm::on_keyEdit_clicked()
 {
-    QVariant qvar = ui->passTable->item(ui->passTable->currentRow(), Column::Password)->data(Qt::DecorationRole);
-    QPixmap p = qvar.value<QPixmap>();
-
-    KeyEditDialog *d = new KeyEditDialog(QString(picMap[hashPixmap(p)].get(master)));
+    KeyEditDialog *d = new KeyEditDialog(*passBook, ui->passTable->currentIndex().row());
     d->show();
-
-    connect(d, &KeyEditDialog::sendKey, this, &PassBookForm::editPassword);
 }
 
 void PassBookForm::on_actionSave_triggered()

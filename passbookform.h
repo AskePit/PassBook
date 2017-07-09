@@ -1,12 +1,7 @@
 #ifndef PASSBOOKFORM_H
 #define PASSBOOKFORM_H
 
-#include "platform.h"
 #include <QWidget>
-#include <QMap>
-#include <QModelIndex>
-#include "securetypes.h"
-#include "utils.h"
 
 class PassBook;
 
@@ -19,22 +14,10 @@ class PassBookForm : public QWidget
     Q_OBJECT
 
 public:
-
-    enum_class(Column) {
-        Id = 0,
-        Name,
-        Url,
-        Login,
-        Password,
-        End
-    } enum_end;
-
-    explicit PassBookForm(PassBook* passBook, QString login, const Master &master, QWidget *parent = 0);
+    explicit PassBookForm(PassBook* passBook, QString login, QWidget *parent = 0);
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
-    void updateTable();
-    void sortIds();
 
 private slots:
     void on_addButton_clicked();
@@ -47,20 +30,14 @@ private slots:
     void on_actionSave_triggered();
 
     void save();
-    void editPassword(QString &p);
-    void genPassword(int n, PasswordType::type type);
     void doubleClickReact(const QModelIndex& idx);
-    void enableControls(bool enable);
+    void enableControls(int row);
 
 private:
     Ui::PassBookForm *ui;
 
     QString login;
-    Master master;
     PassBook* passBook;
-    QMap<quint32, Password> picMap;
-
-    void renderPasswordPixmap(QString &&p, int row);
 };
 
 #endif // PASSBOOKFORM_H
