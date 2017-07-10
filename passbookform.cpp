@@ -2,12 +2,25 @@
 #include "ui_passbookform.h"
 
 #include <QClipboard>
+#include <QMouseEvent>
 #include "utils.h"
 #include "passbook.h"
 
 #include "dialogs/passworddialog.h"
 #include "dialogs/keygendialog.h"
 #include "dialogs/keyeditdialog.h"
+
+bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched) {
+        if (event->type() == QEvent::MouseMove) {
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+            emit tableHover(qobject_cast<QWidget *>(watched), mouseEvent);
+        }
+    }
+
+    return QObject::eventFilter(watched, event);
+}
 
 PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     : QWidget(parent)
@@ -17,15 +30,9 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
+    setAttribute(Qt::WA_Hover);
+    setMouseTracking(true);
     allignWindowToCenter(this);
-
-    ui->passTable->setModel(passBook);
-
-    ui->passTable->setColumnWidth(Column::Id, 35);
-    ui->passTable->setColumnWidth(Column::Name, 100);
-    ui->passTable->setColumnWidth(Column::Url, 150);
-    ui->passTable->setColumnWidth(Column::Login, 100);
-    ui->passTable->setColumnWidth(Column::Password, 160);
 
     addAction(ui->actionSave);
 
@@ -35,12 +42,51 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
 
     enableControls(false);
 
-    connect(ui->passTable, &QTableView::doubleClicked, this, &PassBookForm::doubleClickReact);
+    TableEventFilter *filter = new TableEventFilter();
+
+    ui->passTable->viewport()->setMouseTracking(true);
+    ui->passTable->viewport()->installEventFilter(filter);
+    ui->passTable->horizontalHeader()->viewport()->setMouseTracking(true);
+    ui->passTable->horizontalHeader()->viewport()->installEventFilter(filter);
+
+    connect(filter, &TableEventFilter::tableHover, [=](QWidget *watched, QMouseEvent *event) {
+        int c = ui->passTable->columnAt(event->x());
+        bool isTable = (watched == ui->passTable->viewport());
+        bool isPassword = (c == Column::Password);
+
+        if(!isTable || !isPassword) {
+            passBook->setHoveredPassword(-1);
+        } else {
+            int r = ui->passTable->rowAt(event->y());
+            passBook->setHoveredPassword(r);
+        }
+
+        // trigger passwords to be repainted in case of comming from/to horizontal header
+        emit passBook->dataChanged(passBook->index(0, Column::Password), passBook->index(passBook->rowCount()-1, Column::Password), {Qt::DecorationRole});
+    });
+
+    ui->passTable->setModel(passBook);
+    ui->passTable->setColumnWidth(Column::Id, 35);
+    ui->passTable->setColumnWidth(Column::Name, 100);
+    ui->passTable->setColumnWidth(Column::Url, 150);
+    ui->passTable->setColumnWidth(Column::Login, 100);
+    ui->passTable->setColumnWidth(Column::Password, 300);
+    ui->passTable->horizontalHeader()->setStretchLastSection(true);
+
+    connect(ui->passTable->horizontalHeader(), &QHeaderView::sectionResized, [=](int index, int oldSize, int newSize) {
+        Q_UNUSED(oldSize);
+
+        if(index == Column::Password) {
+            passBook->setpasswordColumnWidth(newSize);
+        }
+    });
 
     connect(ui->passTable->selectionModel(), &QItemSelectionModel::currentRowChanged, [this](const QModelIndex &current, const QModelIndex &previous) {
         Q_UNUSED(previous);
         enableControls(current.row());
     });
+
+    connect(ui->passTable, &QTableView::doubleClicked, this, &PassBookForm::doubleClickReact);
 
     ui->passTable->setFocus();
 }
@@ -151,11 +197,19 @@ void PassBookForm::enableControls(int row)
     }
 }
 
-void PassBookForm::closeEvent(QCloseEvent *event) {
+void PassBookForm::closeEvent(QCloseEvent *event)
+{
     Q_UNUSED(event);
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->clear();
     save();
+}
+
+void PassBookForm::resizeEvent(QResizeEvent *event)
+{
+    Q_UNUSED(event);
+    int passwordWidth = ui->passTable->columnWidth(Column::Password);
+    passBook->setpasswordColumnWidth(passwordWidth);
 }
 
 void PassBookForm::on_keyEdit_clicked()

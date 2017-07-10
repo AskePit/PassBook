@@ -35,6 +35,8 @@ public:
 
     bool noteUp(int index);
     bool noteDown(int index);
+    void setHoveredPassword(int i);
+    void setpasswordColumnWidth(int width);
 
     // QAbstractTableModel interface
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -52,6 +54,8 @@ private:
     QList<Note> m_notes;
     QString m_fileName;
     bool m_changed;
+    int m_hoveredPassword;
+    int m_passwordColumnWidth;
 };
 
 #endif //PASSBOOK_H

@@ -9,6 +9,17 @@ namespace Ui {
 class PassBookForm;
 }
 
+class TableEventFilter : public QObject
+{
+    Q_OBJECT
+
+public:
+    bool eventFilter(QObject *watched, QEvent *event);
+
+signals:
+    void tableHover(QWidget *watched, QMouseEvent *event);
+};
+
 class PassBookForm : public QWidget
 {
     Q_OBJECT
@@ -18,6 +29,7 @@ public:
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
+    void resizeEvent(QResizeEvent *event);
 
 private slots:
     void on_addButton_clicked();
