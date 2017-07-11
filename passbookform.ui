@@ -113,7 +113,7 @@
         <enum>Qt::ClickFocus</enum>
        </property>
        <property name="contextMenuPolicy">
-        <enum>Qt::DefaultContextMenu</enum>
+        <enum>Qt::CustomContextMenu</enum>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -189,18 +189,18 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>141</width>
+           <width>31</width>
            <height>31</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>141</width>
+           <width>31</width>
            <height>31</height>
           </size>
          </property>
          <property name="text">
-          <string>Add</string>
+          <string>+</string>
          </property>
          <property name="default">
           <bool>true</bool>
@@ -208,48 +208,27 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="IdBox">
+        <widget class="QPushButton" name="deleteButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
-           <width>42</width>
+           <width>31</width>
            <height>31</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>42</width>
+           <width>31</width>
            <height>31</height>
           </size>
          </property>
-         <property name="sizeIncrement">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="wrapping">
-          <bool>false</bool>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-         <property name="buttonSymbols">
-          <enum>QAbstractSpinBox::UpDownArrows</enum>
-         </property>
-         <property name="accelerated">
-          <bool>false</bool>
-         </property>
-         <property name="correctionMode">
-          <enum>QAbstractSpinBox::CorrectToPreviousValue</enum>
-         </property>
-         <property name="prefix">
-          <string/>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>1</number>
+         <property name="text">
+          <string>-</string>
          </property>
         </widget>
        </item>
@@ -329,100 +308,10 @@
          </property>
         </widget>
        </item>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="keyEdit">
-         <property name="minimumSize">
-          <size>
-           <width>141</width>
-           <height>31</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>141</width>
-           <height>31</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Edit password</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QPushButton" name="deleteButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>141</width>
-           <height>31</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>141</width>
-           <height>31</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Delete</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="keyGen">
-         <property name="minimumSize">
-          <size>
-           <width>141</width>
-           <height>31</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>141</width>
-           <height>31</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Generate password</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <layout class="QHBoxLayout" name="horizontalLayout_2"/>
      </item>
     </layout>
    </item>
@@ -439,6 +328,32 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionEditPassword">
+   <property name="text">
+    <string>Edit Password</string>
+   </property>
+  </action>
+  <action name="actionGeneratePassword">
+   <property name="text">
+    <string>Generate Password</string>
+   </property>
+  </action>
+  <action name="actionInsertAbove">
+   <property name="text">
+    <string>Insert Above</string>
+   </property>
+   <property name="toolTip">
+    <string>Insert Above</string>
+   </property>
+  </action>
+  <action name="actionInsertBelow">
+   <property name="text">
+    <string>Insert Below</string>
+   </property>
+   <property name="toolTip">
+    <string>Insert Below</string>
    </property>
   </action>
  </widget>

@@ -3,6 +3,7 @@
 
 #include <QClipboard>
 #include <QMouseEvent>
+#include <QMenu>
 #include "utils.h"
 #include "passbook.h"
 
@@ -35,10 +36,6 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     allignWindowToCenter(this);
 
     addAction(ui->actionSave);
-
-    int maxRow = passBook->notes().size() + 1;
-    ui->IdBox->setMaximum(maxRow);
-    ui->IdBox->setValue(maxRow);
 
     enableControls(false);
 
@@ -87,6 +84,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     });
 
     connect(ui->passTable, &QTableView::doubleClicked, this, &PassBookForm::doubleClickReact);
+    connect(ui->passTable, &QTableView::customContextMenuRequested, this, &PassBookForm::callPasswordContextMenu);
 
     ui->passTable->setFocus();
 }
@@ -119,13 +117,7 @@ static qint32 hashPixmap(const QPixmap& pix)
 
 void PassBookForm::on_addButton_clicked()
 {
-    int id = ui->IdBox->value()-1;
-
-    passBook->insertRow(id);
-
-    int maxRow = passBook->rowCount()+1;
-    ui->IdBox->setMaximum(maxRow);
-    ui->IdBox->setValue(maxRow);
+    passBook->insertRow(passBook->rowCount());
 }
 
 void PassBookForm::on_deleteButton_clicked()
@@ -164,12 +156,6 @@ void PassBookForm::on_backButton_clicked()
     close();
 }
 
-void PassBookForm::on_keyGen_clicked()
-{
-    KeyGenDialog *d = new KeyGenDialog(*passBook, ui->passTable->currentIndex().row());
-    d->show();
-}
-
 void PassBookForm::doubleClickReact(const QModelIndex& idx)
 {
     if(idx.column() == Column::Password) {
@@ -185,8 +171,6 @@ void PassBookForm::enableControls(int row)
 
     ui->downButton->setEnabled(enable);
     ui->upButton->setEnabled(enable);
-    ui->keyGen->setEnabled(enable);
-    ui->keyEdit->setEnabled(enable);
 
     if(row == 0) {
         ui->upButton->setEnabled(false);
@@ -195,6 +179,26 @@ void PassBookForm::enableControls(int row)
     if(row == passBook->rowCount()-1) {
         ui->downButton->setEnabled(false);
     }
+}
+
+void PassBookForm::callPasswordContextMenu(const QPoint &point)
+{
+    auto index = ui->passTable->indexAt(point);
+    if(!index.isValid()) {
+        return;
+    }
+
+    QPoint globalPos = ui->passTable->mapToGlobal(point);
+    QMenu menu(ui->passTable);
+    if(index.column() == Column::Password) {
+        menu.addAction(ui->actionEditPassword);
+        menu.addAction(ui->actionGeneratePassword);
+        menu.addSeparator();
+    }
+    menu.addAction(ui->actionInsertAbove);
+    menu.addAction(ui->actionInsertBelow);
+
+    menu.exec(globalPos);
 }
 
 void PassBookForm::closeEvent(QCloseEvent *event)
@@ -212,13 +216,29 @@ void PassBookForm::resizeEvent(QResizeEvent *event)
     passBook->setpasswordColumnWidth(passwordWidth);
 }
 
-void PassBookForm::on_keyEdit_clicked()
+void PassBookForm::on_actionSave_triggered()
+{
+    save();
+}
+
+void PassBookForm::on_actionEditPassword_triggered()
 {
     KeyEditDialog *d = new KeyEditDialog(*passBook, ui->passTable->currentIndex().row());
     d->show();
 }
 
-void PassBookForm::on_actionSave_triggered()
+void PassBookForm::on_actionGeneratePassword_triggered()
 {
-    save();
+    KeyGenDialog *d = new KeyGenDialog(*passBook, ui->passTable->currentIndex().row());
+    d->show();
+}
+
+void PassBookForm::on_actionInsertAbove_triggered()
+{
+    passBook->insertRow(ui->passTable->currentIndex().row());
+}
+
+void PassBookForm::on_actionInsertBelow_triggered()
+{
+    passBook->insertRow(ui->passTable->currentIndex().row()+1);
 }

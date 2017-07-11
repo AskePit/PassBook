@@ -37,13 +37,16 @@ private slots:
     void on_upButton_clicked();
     void on_downButton_clicked();
     void on_backButton_clicked();
-    void on_keyGen_clicked();
-    void on_keyEdit_clicked();
     void on_actionSave_triggered();
+    void on_actionEditPassword_triggered();
+    void on_actionGeneratePassword_triggered();
+    void on_actionInsertAbove_triggered();
+    void on_actionInsertBelow_triggered();
 
     void save();
     void doubleClickReact(const QModelIndex& idx);
     void enableControls(int row);
+    void callPasswordContextMenu(const QPoint &pos);
 
 private:
     Ui::PassBookForm *ui;
