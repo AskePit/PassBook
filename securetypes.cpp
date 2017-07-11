@@ -22,7 +22,7 @@ SecureBytes::SecureBytes(SecureString &&str) : QByteArray(str.toUtf8()) {}
 SecureBytes::SecureBytes(QByteArray &&bytes) : QByteArray(bytes) {}
 
 SecureBytes::SecureBytes(std::initializer_list<byte> list)
-    : QByteArray(list.size(), 0)
+    : QByteArray(static_cast<int>(list.size()), 0)
 {
     std::copy(list.begin(), list.end(), begin());
 }
@@ -176,6 +176,12 @@ static const int PIXMAP_H = 20;
 
 void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool show)
 {
+    const QRect &rect = option.rect;
+
+    if(option.state & QStyle::State_Selected) {
+        painter->fillRect(rect, QColor(0xF5, 0xF5, 0xF5));
+    }
+
     if(m_cryptedPass.isEmpty()) {
         return;
     }
@@ -194,15 +200,17 @@ void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool
         QPainter p(&pixmap);
         p.setFont(font);
 
-
+        if(option.state & QStyle::State_Selected) {
+            p.fillRect(0, 0, rect.width(), rect.height(), QColor(0xF5, 0xF5, 0xF5));
+        }
         p.drawText(margin, margin, w, PIXMAP_H, 0, pass);
-        painter->drawPixmap(option.rect.x(), option.rect.y(), pixmap);
+        painter->drawPixmap(rect.x(), rect.y(), pixmap);
     } else {
-        QPixmap pixmap(option.rect.width(), PIXMAP_H);
+        QPixmap pixmap(rect.width(), PIXMAP_H);
         pixmap.fill();
 
         QPainter p(&pixmap);
-        p.fillRect(0, 0, option.rect.width(), PIXMAP_H, Qt::Dense4Pattern);
-        painter->drawPixmap(option.rect.x(), option.rect.y(), pixmap);
+        p.fillRect(0, 0, rect.width(), PIXMAP_H, Qt::Dense4Pattern);
+        painter->drawPixmap(option.rect.x(), rect.y(), pixmap);
     }
 }

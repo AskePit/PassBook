@@ -291,7 +291,6 @@ Qt::ItemFlags PassBook::flags(const QModelIndex &index) const
     Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren;
 
     int c = index.column();
-
     if(c != Column::Id) {
         f |= Qt::ItemIsEditable;
     }

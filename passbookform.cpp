@@ -27,6 +27,7 @@ PassBookDelegate::PassBookDelegate(QWidget *parent)
     : QStyledItemDelegate(parent)
     , m_hoveredPassword(-1)
     , m_inEditMode(false)
+    , m_doubleClicked(false)
 {}
 
 void PassBookDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -39,6 +40,12 @@ QWidget *PassBookDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
 {
     Q_UNUSED(option);
     Q_UNUSED(index);
+
+    // do not edit on double click
+    if(m_doubleClicked) {
+        m_doubleClicked = false;
+        return 0;
+    }
 
     QLineEdit *editor = new QLineEdit(parent);
     return editor;
@@ -72,6 +79,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     , ui(new Ui::PassBookForm)
     , login(login)
     , passBook(passBook)
+    , passBookDelegate(new PassBookDelegate)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
@@ -91,7 +99,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     ui->passTable->horizontalHeader()->viewport()->installEventFilter(filter);
 
     ui->passTable->setModel(passBook);
-    ui->passTable->setItemDelegateForColumn(Column::Password, new PassBookDelegate);
+    ui->passTable->setItemDelegateForColumn(Column::Password, passBookDelegate);
     ui->passTable->setColumnWidth(Column::Id, 35);
     ui->passTable->setColumnWidth(Column::Name, 100);
     ui->passTable->setColumnWidth(Column::Url, 150);
@@ -114,16 +122,15 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
         bool isTable = (watched == ui->passTable->viewport());
         bool isPassword = (c == Column::Password);
 
-        PassBookDelegate *delegate = qobject_cast<PassBookDelegate*>(ui->passTable->itemDelegateForColumn(Column::Password));
-        if(delegate->isInEditMode()) {
+        if(passBookDelegate->isInEditMode()) {
             return;
         }
 
         if(!isTable || !isPassword) {
-            delegate->setHoveredPassword(-1);
+            passBookDelegate->setHoveredPassword(-1);
         } else {
             int r = ui->passTable->rowAt(event->y());
-            delegate->setHoveredPassword(r);
+            passBookDelegate->setHoveredPassword(r);
         }
 
         // trigger passwords to be repainted in case of comming from/to horizontal header
@@ -201,6 +208,7 @@ void PassBookForm::on_backButton_clicked()
 void PassBookForm::doubleClickReact(const QModelIndex& idx)
 {
     if(idx.column() == Column::Password) {
+        passBookDelegate->informDoubleClicked();
         QClipboard *clipboard = QApplication::clipboard();
         SecureString &&pass = passBook->getPassword(idx.row());
         clipboard->setText( QString(std::move(pass)) );

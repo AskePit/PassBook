@@ -38,10 +38,12 @@ public:
 
 public slots:
     void setHoveredPassword(int i) { m_hoveredPassword = i; }
+    void informDoubleClicked() { m_doubleClicked = true; }
 
 private:
     int m_hoveredPassword;
     mutable bool m_inEditMode;
+    mutable bool m_doubleClicked;
 };
 
 class PassBookForm : public QWidget
@@ -77,6 +79,7 @@ private:
 
     QString login;
     PassBook* passBook;
+    PassBookDelegate *passBookDelegate;
 };
 
 #endif // PASSBOOKFORM_H
