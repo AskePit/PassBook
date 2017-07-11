@@ -5,13 +5,15 @@
 
 #include <algorithm>
 #include <functional>
+#include <QPainter>
+#include <QStyleOptionViewItem>
 
 SecureString::SecureString(QString &&str) : QString(str) {}
 
 SecureString::~SecureString()
 {
     // QString::data() will trigger COW, so use QString::constData()
-    wipememory(constData(), size()*2); // QChar is 16 bytes
+    //wipememory(constData(), size()*2); // QChar is 16 bytes
 }
 
 SecureBytes::SecureBytes() : QByteArray() {}
@@ -129,6 +131,7 @@ HashAndSalt MasterDoor::getHash()
 }
 
 Password::Password(QString &&pass, const Master &master)
+    : m_master(&master)
 {
     load(std::move(pass), master);
 }
@@ -144,10 +147,16 @@ void Password::load(QString &&pass, const Master &master)
     MasterDoor door(master);
     crypter.cryptData(as<byte*>(m_cryptedPass), as<byte*>(bytes), size, as<const byte*>(door.get()));
 
+    m_master = &master;
     m_loaded = true;
 }
 
-SecureString Password::get(const Master &master) const
+void Password::reload(QString &&pass)
+{
+    load(std::move(pass), *m_master);
+}
+
+SecureString Password::get() const
 {
     if(m_cryptedPass.isEmpty()) {
         return QString();
@@ -156,8 +165,44 @@ SecureString Password::get(const Master &master) const
     SecureBytes pass(m_cryptedPass.size());
 
     gost::Crypter crypter;
-    MasterDoor door(master);
+    MasterDoor door(*m_master);
     crypter.cryptData(as<byte*>(pass), as<const byte*>(m_cryptedPass), m_cryptedPass.size(), as<const byte*>(door.get()));
 
     return SecureString( QString::fromUtf8(pass) );
+}
+
+static const int PIXMAP_W = 150;
+static const int PIXMAP_H = 20;
+
+void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool show)
+{
+    if(m_cryptedPass.isEmpty()) {
+        return;
+    }
+
+    if(show) {
+        QString pass = get();
+
+        QFont font("Consolas", 9);
+        QFontMetrics fm(font);
+        const int margin = 4;
+        int w = fm.width(pass) + margin;
+
+        QPixmap pixmap(w, PIXMAP_H);
+        pixmap.fill();
+
+        QPainter p(&pixmap);
+        p.setFont(font);
+
+
+        p.drawText(margin, margin, w, PIXMAP_H, 0, pass);
+        painter->drawPixmap(option.rect.x(), option.rect.y(), pixmap);
+    } else {
+        QPixmap pixmap(option.rect.width(), PIXMAP_H);
+        pixmap.fill();
+
+        QPainter p(&pixmap);
+        p.fillRect(0, 0, option.rect.width(), PIXMAP_H, Qt::Dense4Pattern);
+        painter->drawPixmap(option.rect.x(), option.rect.y(), pixmap);
+    }
 }

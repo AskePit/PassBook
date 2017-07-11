@@ -10,7 +10,6 @@ SOURCES += main.cpp\
     crypt.cpp \
     dialogs/passworddialog.cpp \
     dialogs/keygendialog.cpp \
-    dialogs/keyeditdialog.cpp \
     utils.cpp \
     securetypes.cpp \
     dialogs/accountcreatedialog.cpp \
@@ -24,7 +23,6 @@ HEADERS  += \
     crypt.h \
     dialogs/passworddialog.h \
     dialogs/keygendialog.h \
-    dialogs/keyeditdialog.h \
     utils.h \
     securetypes.h \
     dialogs/accountcreatedialog.h \
@@ -34,7 +32,6 @@ FORMS    += \
     passbookform.ui \
     dialogs/passworddialog.ui \
     dialogs/keygendialog.ui \
-    dialogs/keyeditdialog.ui \
     dialogs/accountcreatedialog.ui \
     dialogs/accountdeletedialog.ui
 

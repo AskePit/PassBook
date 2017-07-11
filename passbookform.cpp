@@ -4,12 +4,12 @@
 #include <QClipboard>
 #include <QMouseEvent>
 #include <QMenu>
+#include <QLineEdit>
 #include "utils.h"
 #include "passbook.h"
 
 #include "dialogs/passworddialog.h"
 #include "dialogs/keygendialog.h"
-#include "dialogs/keyeditdialog.h"
 
 bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
 {
@@ -21,6 +21,50 @@ bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
     }
 
     return QObject::eventFilter(watched, event);
+}
+
+PassBookDelegate::PassBookDelegate(QWidget *parent)
+    : QStyledItemDelegate(parent)
+    , m_hoveredPassword(-1)
+    , m_inEditMode(false)
+{}
+
+void PassBookDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    Password password = qvariant_cast<Password>(index.data());
+    password.paint(painter, option, index.row() == m_hoveredPassword);
+}
+
+QWidget *PassBookDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    Q_UNUSED(option);
+    Q_UNUSED(index);
+
+    QLineEdit *editor = new QLineEdit(parent);
+    return editor;
+}
+
+void PassBookDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+    m_inEditMode = true;
+
+    QString value = QString( qvariant_cast<Password>(index.data()).get() );
+
+    QLineEdit *line = static_cast<QLineEdit*>(editor);
+    line->setText(value);
+}
+
+void PassBookDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
+                                const QModelIndex &index) const
+{
+    QLineEdit *line = static_cast<QLineEdit*>(editor);
+    QString value = line->text();
+    Password password = qvariant_cast<Password>(index.data());
+    password.reload(std::move(value));
+
+    model->setData(index, QVariant::fromValue(password), Qt::EditRole);
+
+    m_inEditMode = false;
 }
 
 PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
@@ -46,37 +90,14 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     ui->passTable->horizontalHeader()->viewport()->setMouseTracking(true);
     ui->passTable->horizontalHeader()->viewport()->installEventFilter(filter);
 
-    connect(filter, &TableEventFilter::tableHover, [=](QWidget *watched, QMouseEvent *event) {
-        int c = ui->passTable->columnAt(event->x());
-        bool isTable = (watched == ui->passTable->viewport());
-        bool isPassword = (c == Column::Password);
-
-        if(!isTable || !isPassword) {
-            passBook->setHoveredPassword(-1);
-        } else {
-            int r = ui->passTable->rowAt(event->y());
-            passBook->setHoveredPassword(r);
-        }
-
-        // trigger passwords to be repainted in case of comming from/to horizontal header
-        emit passBook->dataChanged(passBook->index(0, Column::Password), passBook->index(passBook->rowCount()-1, Column::Password), {Qt::DecorationRole});
-    });
-
     ui->passTable->setModel(passBook);
+    ui->passTable->setItemDelegateForColumn(Column::Password, new PassBookDelegate);
     ui->passTable->setColumnWidth(Column::Id, 35);
     ui->passTable->setColumnWidth(Column::Name, 100);
     ui->passTable->setColumnWidth(Column::Url, 150);
     ui->passTable->setColumnWidth(Column::Login, 100);
     ui->passTable->setColumnWidth(Column::Password, 300);
     ui->passTable->horizontalHeader()->setStretchLastSection(true);
-
-    connect(ui->passTable->horizontalHeader(), &QHeaderView::sectionResized, [=](int index, int oldSize, int newSize) {
-        Q_UNUSED(oldSize);
-
-        if(index == Column::Password) {
-            passBook->setpasswordColumnWidth(newSize);
-        }
-    });
 
     connect(ui->passTable->selectionModel(), &QItemSelectionModel::currentRowChanged, [this](const QModelIndex &current, const QModelIndex &previous) {
         Q_UNUSED(previous);
@@ -87,6 +108,27 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     connect(ui->passTable, &QTableView::customContextMenuRequested, this, &PassBookForm::callPasswordContextMenu);
 
     ui->passTable->setFocus();
+
+    connect(filter, &TableEventFilter::tableHover, [=](QWidget *watched, QMouseEvent *event) {        
+        int c = ui->passTable->columnAt(event->x());
+        bool isTable = (watched == ui->passTable->viewport());
+        bool isPassword = (c == Column::Password);
+
+        PassBookDelegate *delegate = qobject_cast<PassBookDelegate*>(ui->passTable->itemDelegateForColumn(Column::Password));
+        if(delegate->isInEditMode()) {
+            return;
+        }
+
+        if(!isTable || !isPassword) {
+            delegate->setHoveredPassword(-1);
+        } else {
+            int r = ui->passTable->rowAt(event->y());
+            delegate->setHoveredPassword(r);
+        }
+
+        // trigger passwords to be repainted in case of comming from/to horizontal header
+        emit passBook->dataChanged(passBook->index(0, Column::Password), passBook->index(passBook->rowCount()-1, Column::Password), {Qt::DisplayRole});
+    });
 }
 
 PassBookForm::~PassBookForm()
@@ -209,13 +251,6 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     save();
 }
 
-void PassBookForm::resizeEvent(QResizeEvent *event)
-{
-    Q_UNUSED(event);
-    int passwordWidth = ui->passTable->columnWidth(Column::Password);
-    passBook->setpasswordColumnWidth(passwordWidth);
-}
-
 void PassBookForm::on_actionSave_triggered()
 {
     save();
@@ -223,8 +258,7 @@ void PassBookForm::on_actionSave_triggered()
 
 void PassBookForm::on_actionEditPassword_triggered()
 {
-    KeyEditDialog *d = new KeyEditDialog(*passBook, ui->passTable->currentIndex().row());
-    d->show();
+    ui->passTable->edit(ui->passTable->currentIndex());
 }
 
 void PassBookForm::on_actionGeneratePassword_triggered()

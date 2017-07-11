@@ -12,8 +12,6 @@ PassBook::PassBook(const QString &fileName, const Master &master)
     , m_master(master)
     , m_fileName(fileName)
     , m_changed(false)
-    , m_hoveredPassword(-1)
-    , m_passwordColumnWidth(300)
 {}
 
 static inline quint64 fileSize(const QString &fileName)
@@ -132,7 +130,7 @@ void PassBook::save()
         data += URL_END;
         data += note.login;
         data += LOGIN_END;
-        data += note.password.get(m_master);
+        data += note.password.get();
         data += PASS_END;
     }
 
@@ -160,7 +158,7 @@ void PassBook::save()
 
 SecureString PassBook::getPassword(int row) const
 {
-    return m_notes[row].password.get(m_master);
+    return m_notes[row].password.get();
 }
 
 void PassBook::setPassword(int row, SecureString &&password)
@@ -196,16 +194,6 @@ bool PassBook::noteDown(int i)
     return true;
 }
 
-void PassBook::setHoveredPassword(int i)
-{
-    m_hoveredPassword = i;
-}
-
-void PassBook::setpasswordColumnWidth(int width)
-{
-    m_passwordColumnWidth = width;
-}
-
 // QAbstractTableModel interface
 int PassBook::rowCount(const QModelIndex &parent) const
 {
@@ -236,38 +224,7 @@ QVariant PassBook::data(const QModelIndex &index, int role) const
                 case Column::Name: return note.source;
                 case Column::Url: return note.URL;
                 case Column::Login: return note.login;
-                default: return QVariant();
-            }
-        } break;
-        case Qt::DecorationRole: {
-            switch (col) {
-                case Column::Password: {
-                    QString p = note.password.get(m_master);
-                    if(p.isEmpty()) {
-                        return QVariant();
-                    }
-
-                    if(row == m_hoveredPassword) {
-                        QFont font("Consolas", 9);
-                        QFontMetrics fm(font);
-                        int w = fm.width(p);
-
-                        QPixmap pixmap(w, PIXMAP_H);
-                        pixmap.fill();
-
-                        QPainter painter(&pixmap);
-                        painter.setFont(font);
-                        painter.drawText(0, 4, w, PIXMAP_H, 0, p);
-                        return pixmap;
-                    } else {
-                        QPixmap pixmap(m_passwordColumnWidth, PIXMAP_H);
-                        pixmap.fill();
-
-                        QPainter painter(&pixmap);
-                        painter.fillRect(0, 0, m_passwordColumnWidth, PIXMAP_H, Qt::Dense4Pattern);
-                        return pixmap;
-                    }
-                }
+            case Column::Password: return QVariant::fromValue(note.password);
                 default: return QVariant();
             }
         } break;
@@ -314,6 +271,7 @@ bool PassBook::setData(const QModelIndex &index, const QVariant &value, int role
                 case Column::Name: note.source = v; changed = true; break;
                 case Column::Url: note.URL = v; changed = true; break;
                 case Column::Login: note.login = v; changed = true; break;
+                case Column::Password: note.password = qvariant_cast<Password>(value); changed = true; break;
                 default: break;
             }
         } break;
@@ -330,16 +288,12 @@ bool PassBook::setData(const QModelIndex &index, const QVariant &value, int role
 
 Qt::ItemFlags PassBook::flags(const QModelIndex &index) const
 {
-    Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemNeverHasChildren;
+    Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren;
 
     int c = index.column();
 
-    if(c != Column::Id && c != Column::Password) {
+    if(c != Column::Id) {
         f |= Qt::ItemIsEditable;
-    }
-
-    if(c != Column::Password) {
-        f |= Qt::ItemIsSelectable;
     }
 
     return f;

@@ -1,6 +1,7 @@
 #ifndef PASSWORDPIXMAP_H
 #define PASSWORDPIXMAP_H
 
+#include <QMetaType>
 #include <QString>
 #include "platform.h"
 
@@ -58,6 +59,9 @@ private:
     const Master &m_master;
 };
 
+class QPainter;
+class QStyleOptionViewItem;
+
 class Password
 {
 public:
@@ -65,13 +69,19 @@ public:
     Password(QString &&pass, const Master &master);
 
     void load(QString &&pass, const Master &master);
+    void reload(QString &&pass);
     bool isLoaded() const { return m_loaded; }
 
-    SecureString get(const Master &master) const;
+    SecureString get() const;
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, bool show);
 
 private:
     bool m_loaded = false;
     SecureBytes m_cryptedPass;
+    const Master *m_master;
 };
+
+Q_DECLARE_METATYPE(Password)
 
 #endif // PASSWORDPIXMAP_H

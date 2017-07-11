@@ -2,6 +2,7 @@
 #define PASSBOOKFORM_H
 
 #include <QWidget>
+#include <QStyledItemDelegate>
 
 class PassBook;
 
@@ -20,6 +21,29 @@ signals:
     void tableHover(QWidget *watched, QMouseEvent *event);
 };
 
+class PassBookDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+
+public:
+    PassBookDelegate(QWidget *parent = 0);
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    //QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+
+    bool isInEditMode() { return m_inEditMode; }
+
+public slots:
+    void setHoveredPassword(int i) { m_hoveredPassword = i; }
+
+private:
+    int m_hoveredPassword;
+    mutable bool m_inEditMode;
+};
+
 class PassBookForm : public QWidget
 {
     Q_OBJECT
@@ -29,7 +53,7 @@ public:
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
-    void resizeEvent(QResizeEvent *event);
+    //void resizeEvent(QResizeEvent *event);
 
 private slots:
     void on_addButton_clicked();
