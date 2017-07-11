@@ -17,10 +17,13 @@ public:
     SecureBytes();
     SecureBytes(int size);
     explicit SecureBytes(SecureString &&str);
+    SecureBytes(std::initializer_list<byte>);
     SecureBytes(QByteArray &&bytes);
 
     ~SecureBytes();
 };
+
+SecureBytes operator+(const SecureBytes &b1, const SecureBytes &b2);
 
 class Master
 {
@@ -39,11 +42,18 @@ private:
     friend class MasterDoor;
 };
 
+struct HashAndSalt {
+    SecureBytes hash;
+    SecureBytes salt;
+};
+
 class MasterDoor {
 public:
     explicit MasterDoor(const Master &master);
     ~MasterDoor();
-    byte *get();
+    const SecureBytes &get();
+    SecureBytes getHash(const SecureBytes &salt);
+    HashAndSalt getHash();
 private:
     const Master &m_master;
 };

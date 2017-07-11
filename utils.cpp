@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "platform.h"
+#include "securetypes.h"
 
 #include <ctime>
 #include <cstdlib>
@@ -17,6 +18,11 @@ void memrandomset(byte* data, size_t size)
         *data = rand()%256;
         ++data;
     }
+}
+
+void memrandomset(SecureBytes &bytes)
+{
+    memrandomset(as<byte*>(bytes), bytes.size());
 }
 
 QString passGenerate(int n, PasswordType::type type)

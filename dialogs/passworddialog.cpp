@@ -128,18 +128,17 @@ void PasswordDialog::createAccount(const QString &log, QString &key)
 {
     Master master(std::move(key));
 
-    QString accountFile = log + ACCOUNT_EXT;
-
-    SecureBytes hsh(gost::SIZE_OF_HASH);
-
+    HashAndSalt hs;
     {
         MasterDoor door(master);
-        gost::hash(as<byte*>(hsh), door.get(), gost::SIZE_OF_KEY);
+        hs = door.getHash();
     }
 
+    QString accountFile = log + ACCOUNT_EXT;
     QFile f(accountFile);
     f.open(QIODevice::WriteOnly);
-    f.write(as<char*>(hsh), gost::SIZE_OF_HASH);
+    f.write(as<char*>(hs.hash), gost::SIZE_OF_HASH);
+    f.write(as<char*>(hs.salt), gost::SIZE_OF_SALT);
     f.close();
 
     PassBook* passBook = new PassBook(accountFile, master);

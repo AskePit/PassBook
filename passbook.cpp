@@ -28,22 +28,23 @@ int PassBook::verify()
 
     quint64 sizeofFile = fileSize(m_fileName);
 
-    if(sizeofFile < SIZE_OF_HASH) {
+    if(sizeofFile < SIZE_OF_HASH + SIZE_OF_SALT) {
         return false;
     }
 
     SecureBytes fileHash(SIZE_OF_HASH);
+    SecureBytes fileSalt(SIZE_OF_SALT);
 
     QFile in(m_fileName);
     in.open(QIODevice::ReadOnly);
     in.read(as<char *>(fileHash), SIZE_OF_HASH);
+    in.read(as<char *>(fileSalt), SIZE_OF_SALT);
     in.close();
 
-    SecureBytes realHash(SIZE_OF_HASH);
     MasterDoor door(m_master);
-    hash(as<byte*>(realHash), door.get(), gost::SIZE_OF_KEY);
+    SecureBytes realHash = door.getHash(fileSalt);
 
-    return fileHash == realHash ? static_cast<int>(sizeofFile - SIZE_OF_HASH)
+    return fileHash == realHash ? static_cast<int>(sizeofFile - SIZE_OF_HASH - SIZE_OF_SALT)
                                 : -1;
 }
 
@@ -95,7 +96,7 @@ bool PassBook::load()
 
     QFile f(m_fileName);
     f.open(QIODevice::ReadOnly);
-    f.seek(SIZE_OF_HASH);
+    f.seek(SIZE_OF_HASH + SIZE_OF_SALT);
 
     SecureBytes cryptedData(sizeofMessage);
     SecureBytes data(sizeofMessage);
@@ -106,7 +107,7 @@ bool PassBook::load()
     {
         Crypter crypter;
         MasterDoor door(m_master);
-        crypter.cryptData(as<byte*>(data), as<byte*>(cryptedData), sizeofMessage, door.get());
+        crypter.cryptData(as<byte*>(data), as<byte*>(cryptedData), sizeofMessage, as<const byte*>(door.get()));
     }
 
     parseData(data, m_notes, m_master);
@@ -138,18 +139,19 @@ void PassBook::save()
     const int size = data.size();
 
     SecureBytes cryptedData(size);
-    SecureBytes fileHash(SIZE_OF_HASH);
 
+    HashAndSalt hs;
     {
         Crypter crypter;
         MasterDoor door(m_master);
-        crypter.cryptData(as<byte*>(cryptedData), as<byte*>(data), size, door.get());
-        hash(as<byte*>(fileHash), door.get(), gost::SIZE_OF_KEY);
+        crypter.cryptData(as<byte*>(cryptedData), as<byte*>(data), size, as<const byte*>(door.get()));
+        hs = door.getHash();
     }
 
     QFile f(m_fileName);
     f.open(QIODevice::WriteOnly | QIODevice::Truncate);
-    f.write(as<char*>(fileHash), SIZE_OF_HASH);
+    f.write(as<char*>(hs.hash), SIZE_OF_HASH);
+    f.write(as<char*>(hs.salt), SIZE_OF_SALT);
     f.write(as<char*>(cryptedData), size);
     f.close();
 

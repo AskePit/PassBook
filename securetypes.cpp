@@ -1,6 +1,7 @@
 #include "securetypes.h"
 #include "utils.h"
 #include "crypt.h"
+#include "hash.h"
 
 #include <algorithm>
 #include <functional>
@@ -18,9 +19,22 @@ SecureBytes::SecureBytes(int size) : QByteArray(size, 0) {}
 SecureBytes::SecureBytes(SecureString &&str) : QByteArray(str.toUtf8()) {}
 SecureBytes::SecureBytes(QByteArray &&bytes) : QByteArray(bytes) {}
 
+SecureBytes::SecureBytes(std::initializer_list<byte> list)
+    : QByteArray(list.size(), 0)
+{
+    std::copy(list.begin(), list.end(), begin());
+}
+
 SecureBytes::~SecureBytes()
 {
     wipememory(data(), size());
+}
+
+SecureBytes operator+(const SecureBytes &b1, const SecureBytes &b2)
+{
+    SecureBytes res(b1);
+    res.append(b2);
+    return res;
 }
 
 Master::Master(SecureString &&key)
@@ -68,7 +82,7 @@ static inline void xor_arrays(QByteArray &to, const QByteArray &from)
 
 void Master::lock() const
 {
-    memrandomset(as<byte*>(m_x), gost::SIZE_OF_KEY);
+    memrandomset(m_x);
     xor_arrays(m_data, m_x);
 }
 
@@ -88,9 +102,30 @@ MasterDoor::~MasterDoor()
     m_master.lock();
 }
 
-byte *MasterDoor::get()
+const SecureBytes &MasterDoor::get()
 {
-    return as<byte*>(m_master.m_data);
+    return m_master.m_data;
+}
+
+static SecureBytes staticSalt {0x85, 0x54, 0xd6, 0xb0, 0x9f, 0x36, 0xaa};
+
+SecureBytes MasterDoor::getHash(const SecureBytes &salt)
+{
+    SecureBytes salted = m_master.m_data + salt + staticSalt;
+    SecureBytes hash(gost::SIZE_OF_HASH);
+
+    gost::hash(as<byte*>(hash), as<byte*>(salted), salted.size());
+    return hash;
+}
+
+HashAndSalt MasterDoor::getHash()
+{
+    SecureBytes salt(gost::SIZE_OF_SALT);
+    memrandomset(salt);
+
+    SecureBytes hash = getHash(salt);
+
+    return {hash, salt};
 }
 
 Password::Password(QString &&pass, const Master &master)
@@ -107,7 +142,7 @@ void Password::load(QString &&pass, const Master &master)
 
     gost::Crypter crypter;
     MasterDoor door(master);
-    crypter.cryptData(as<byte*>(m_cryptedPass), as<byte*>(bytes), size, door.get());
+    crypter.cryptData(as<byte*>(m_cryptedPass), as<byte*>(bytes), size, as<const byte*>(door.get()));
 
     m_loaded = true;
 }
@@ -122,7 +157,7 @@ SecureString Password::get(const Master &master) const
 
     gost::Crypter crypter;
     MasterDoor door(master);
-    crypter.cryptData(as<byte*>(pass), as<const byte*>(m_cryptedPass), m_cryptedPass.size(), door.get());
+    crypter.cryptData(as<byte*>(pass), as<const byte*>(m_cryptedPass), m_cryptedPass.size(), as<const byte*>(door.get()));
 
     return SecureString( QString::fromUtf8(pass) );
 }

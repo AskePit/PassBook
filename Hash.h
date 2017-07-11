@@ -14,6 +14,7 @@
 namespace gost
 {
     const size_t SIZE_OF_HASH = 64;
+    const size_t SIZE_OF_SALT = 6;
     void hash(byte* hash, const byte* message, const uint length);
 }
 
