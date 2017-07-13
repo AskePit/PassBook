@@ -55,7 +55,7 @@ Master::Master(SecureBytes &&key)
 
 void Master::init()
 {
-    int size = m_data.size();
+    int size { m_data.size() };
     m_data.resize(gost::SIZE_OF_KEY);
 
     if(size < gost::SIZE_OF_KEY) {
@@ -125,7 +125,7 @@ HashAndSalt MasterDoor::getHash()
     SecureBytes salt(gost::SIZE_OF_SALT);
     memrandomset(salt);
 
-    SecureBytes hash = getHash(salt);
+    SecureBytes hash { getHash(salt) };
 
     return {hash, salt};
 }
@@ -140,7 +140,7 @@ void Password::load(QString &&pass, const Master &master)
 {
     SecureBytes bytes(std::move(pass));
 
-    int size = bytes.size();
+    int size { bytes.size() };
     m_cryptedPass.resize(size);
 
     gost::Crypter crypter;
@@ -165,15 +165,15 @@ SecureString Password::get() const
     SecureBytes pass(m_cryptedPass.size());
 
     gost::Crypter crypter;
-    MasterDoor door(*m_master);
+    MasterDoor door {*m_master};
     crypter.cryptData(as<byte*>(pass), as<const byte*>(m_cryptedPass), m_cryptedPass.size(), as<const byte*>(door.get()));
 
-    return SecureString( QString::fromUtf8(pass) );
+    return SecureString{ QString::fromUtf8(pass) };
 }
 
 void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool show)
 {
-    const QRect &rect = option.rect;
+    const QRect &rect { option.rect };
 
     if(option.state & QStyle::State_Selected) {
         painter->fillRect(rect, QColor(0xF5, 0xF5, 0xF5));
@@ -184,14 +184,14 @@ void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool
     }
 
     if(show) {
-        QString pass = get();
+        QString pass { get() };
 
-        QFont font("Consolas", 9);
-        QFontMetrics fm(font);
-        const int margin = 4;
-        int w = fm.width(pass) + margin;
+        QFont font {"Consolas", 9};
+        QFontMetrics fm {font};
+        const int margin {4};
+        int w { fm.width(pass) + margin };
 
-        QPixmap pixmap(w, rect.height());
+        QPixmap pixmap {w, rect.height()};
         pixmap.fill();
 
         QPainter p(&pixmap);
@@ -203,10 +203,10 @@ void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool
         p.drawText(margin, margin, w, rect.height(), 0, pass);
         painter->drawPixmap(rect.x(), rect.y(), pixmap);
     } else {
-        QPixmap pixmap(rect.width(), rect.height());
+        QPixmap pixmap {rect.width(), rect.height()};
         pixmap.fill();
 
-        QPainter p(&pixmap);
+        QPainter p {&pixmap};
         p.fillRect(0, 0, rect.width(), rect.height(), Qt::Dense4Pattern);
         painter->drawPixmap(option.rect.x(), rect.y(), pixmap);
     }

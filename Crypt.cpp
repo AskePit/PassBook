@@ -15,7 +15,7 @@
 
 namespace gost {
 
-static const u32 defaultSBox[4][256] =
+static const u32 defaultSBox[4][256]
 {
 	{
 		0x00072000, 0x00075000, 0x00074800, 0x00071000, 0x00076800, 0x00074000, 0x00070000, 0x00077000,
@@ -224,11 +224,11 @@ void Crypter::decryptString(char *dst, const byte *scr, size_t size, const byte 
 }
 
 // INTERNAL FUNCTIONS
-static const uint C1 = 0x1010104;
-static const uint C2 = 0x1010101;
+static const uint C1 { 0x1010104 };
+static const uint C2 { 0x1010101 };
 
 inline u32 addMod32_1(u32 x, u32 y) {
-	u32 sum = x + y;
+    u32 sum { x + y };
 	sum += (sum < x) | (sum < y);
 	return sum;
 }
@@ -241,16 +241,16 @@ void Crypter::cryptData(byte *dst, const byte *src, size_t size, const byte *pas
 
 	memcpy(X, password, 32);
 
-    size_t remain = size%8;
+    size_t remain { size%8 };
 	if (remain == 0) {
 		remain = 8;
 	}
 
-    const byte* lastBytes = src + size - remain + 1;
+    const byte* lastBytes { src + size - remain + 1 };
 
 	u32 AB[2];
-	u32 &A = AB[0];
-	u32 &B = AB[1];
+    u32 &A {AB[0]};
+    u32 &B {AB[1]};
 
     register u32 N1, N2, N3, N4;
 

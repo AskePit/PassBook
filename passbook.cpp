@@ -18,7 +18,7 @@ PassBook::PassBook(const QString &fileName, const Master &master)
 
 static inline quint64 fileSize(const QString &fileName)
 {
-    QFileInfo info(fileName);
+    QFileInfo info {fileName};
     return info.size();
 }
 
@@ -26,7 +26,7 @@ int PassBook::verify()
 {
     using namespace gost;
 
-    quint64 sizeofFile = fileSize(m_fileName);
+    quint64 sizeofFile {fileSize(m_fileName)};
 
     if(sizeofFile < SIZE_OF_HASH + SIZE_OF_SALT) {
         return false;
@@ -35,29 +35,29 @@ int PassBook::verify()
     SecureBytes fileHash(SIZE_OF_HASH);
     SecureBytes fileSalt(SIZE_OF_SALT);
 
-    QFile in(m_fileName);
+    QFile in {m_fileName};
     in.open(QIODevice::ReadOnly);
     in.read(as<char *>(fileHash), SIZE_OF_HASH);
     in.read(as<char *>(fileSalt), SIZE_OF_SALT);
     in.close();
 
-    MasterDoor door(m_master);
-    SecureBytes realHash = door.getHash(fileSalt);
+    MasterDoor door {m_master};
+    SecureBytes realHash {door.getHash(fileSalt)};
 
     return fileHash == realHash ? static_cast<int>(sizeofFile - SIZE_OF_HASH - SIZE_OF_SALT)
                                 : -1;
 }
 
-static const char SOURCE_END = 0x7;
-static const char URL_END    = 0x8;
-static const char LOGIN_END  = 0x9;
-static const char PASS_END   = 0xA;
+static const char SOURCE_END {0x7};
+static const char URL_END    {0x8};
+static const char LOGIN_END  {0x9};
+static const char PASS_END   {0xA};
 
 static void parseData(const SecureBytes &data, QList<Note> &notes, const Master &master)
 {
-    const char* head = data.data();
-    const char* cursor = head;
-    const char* end = head + data.size();
+    const char* head {data.data()};
+    const char* cursor {head};
+    const char* end {head + data.size()};
     Note note;
 
     while(cursor != end) {
@@ -69,7 +69,7 @@ static void parseData(const SecureBytes &data, QList<Note> &notes, const Master 
         byte code = *cursor;
 
         SecureBytes fieldData(data.mid(head - data.data(), cursor - head));
-        QString str(std::move(fieldData));
+        QString str {std::move(fieldData)};
 
         switch(code) {
             case SOURCE_END: note.source = str; break;
@@ -89,12 +89,12 @@ bool PassBook::load()
 {
     using namespace gost;
 
-    int sizeofMessage = verify();
+    int sizeofMessage {verify()};
     if(sizeofMessage < 0) {
         return m_loaded = false;
     }
 
-    QFile f(m_fileName);
+    QFile f {m_fileName};
     f.open(QIODevice::ReadOnly);
     f.seek(SIZE_OF_HASH + SIZE_OF_SALT);
 
@@ -106,7 +106,7 @@ bool PassBook::load()
 
     {
         Crypter crypter;
-        MasterDoor door(m_master);
+        MasterDoor door {m_master};
         crypter.cryptData(as<byte*>(data), as<byte*>(cryptedData), sizeofMessage, as<const byte*>(door.get()));
     }
 
@@ -149,19 +149,19 @@ void PassBook::save()
         data += PASS_END;
     }
 
-    const int size = data.size();
+    const int size {data.size()};
 
     SecureBytes cryptedData(size);
 
     HashAndSalt hs;
     {
         Crypter crypter;
-        MasterDoor door(m_master);
+        MasterDoor door {m_master};
         crypter.cryptData(as<byte*>(cryptedData), as<byte*>(data), size, as<const byte*>(door.get()));
         hs = door.getHash();
     }
 
-    QFile f(m_fileName);
+    QFile f{m_fileName};
     f.open(QIODevice::WriteOnly | QIODevice::Truncate);
     f.write(as<char*>(hs.hash), SIZE_OF_HASH);
     f.write(as<char*>(hs.salt), SIZE_OF_SALT);
@@ -180,7 +180,7 @@ void PassBook::setPassword(int row, SecureString &&password)
 {
     m_notes[row].password.load(std::move(password), m_master);
 
-    QModelIndex idx = index(row, Column::Password);
+    QModelIndex idx {index(row, Column::Password)};
     emit dataChanged(idx, idx, {Qt::DecorationRole});
     m_changed = true;
 }
@@ -220,14 +220,11 @@ int PassBook::columnCount(const QModelIndex &parent) const
     return Column::Count;
 }
 
-static const int PIXMAP_W = 150;
-static const int PIXMAP_H = 20;
-
 QVariant PassBook::data(const QModelIndex &index, int role) const
 {
-    int row = index.row();
-    int col = index.column();
-    const Note &note = m_notes[row];
+    int row {index.row()};
+    int col {index.column()};
+    const Note &note {m_notes[row]};
 
     switch (role) {
         case Qt::EditRole:
@@ -273,8 +270,8 @@ QVariant PassBook::headerData(int section, Qt::Orientation orientation, int role
 
 bool PassBook::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    Note &note = m_notes[index.row()];
-    QString v = value.toString();
+    Note &note {m_notes[index.row()]};
+    QString v {value.toString()};
 
     bool changed = false;
 
@@ -305,10 +302,10 @@ bool PassBook::setItemData(const QModelIndex &index, const QMap<int, QVariant> &
         return false;
     }
 
-    Note &note = m_notes[index.row()];
+    Note &note { m_notes[index.row()] };
 
-    const QVariant &value = roles.contains(Qt::DisplayRole) ? roles[Qt::DisplayRole] : roles[Qt::EditRole];
-    const QString v = value.toString();
+    const QVariant &value { roles.contains(Qt::DisplayRole) ? roles[Qt::DisplayRole] : roles[Qt::EditRole] };
+    const QString v { value.toString() };
 
     bool changed = false;
     switch (index.column()) {
@@ -329,7 +326,7 @@ bool PassBook::setItemData(const QModelIndex &index, const QMap<int, QVariant> &
 
 Qt::ItemFlags PassBook::flags(const QModelIndex &index) const
 {
-    Qt::ItemFlags f = QAbstractTableModel::flags(index) | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    Qt::ItemFlags f { QAbstractTableModel::flags(index) | Qt::ItemIsEnabled | Qt::ItemIsSelectable };
 
     int c = index.column();
     if(c != Column::Id) {
@@ -355,7 +352,7 @@ bool PassBook::insertRows(int row, int count, const QModelIndex &parent)
 
     beginInsertRows(QModelIndex(), row, row + count - 1);
     for(int i = 0; i<count; ++i) {
-        Note &&note = Note();
+        Note &&note {Note{}};
         note.password.load("", m_master);
         m_notes.insert(row, std::move(note));
     }
@@ -386,7 +383,7 @@ bool PassBook::moveRows(const QModelIndex &sourceParent, int sourceRow, int coun
 
     beginMoveRows(QModelIndex(), sourceRow, sourceRow + count - 1, QModelIndex(), destinationChild);
 
-    int dist = sourceRow - destinationChild;
+    int dist { sourceRow - destinationChild };
 
     if(count == 1 && dist == 1) {
         noteUp(sourceRow);

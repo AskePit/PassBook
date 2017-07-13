@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 
     qRegisterMetaTypeStreamOperators<Password>("Password");
 
-    PasswordDialog *w = new PasswordDialog;
+    PasswordDialog *w { new PasswordDialog };
     w->show();
 
     return a.exec();

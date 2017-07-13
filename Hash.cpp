@@ -17,7 +17,7 @@
 namespace gost
 {
 	// Tables for function F
-	static const u64 T[8][256] = {
+    static const u64 T[8][256] {
 	{
         0xE6F87E5C5B711FD0ULL,0x258377800924FA16ULL,0xC849E07E852EA4A8ULL,0x5B4686A18F06C16AULL,
         0x0B32E9A2D77B416EULL,0xABDA37A467815C66ULL,0xF61796A81A686676ULL,0xF5DC0B706391954BULL,
@@ -548,7 +548,7 @@ namespace gost
 	}};
 
 	// Constant values for KeySchedule function
-	static const byte C[12][64] = {
+    static const byte C[12][64] {
 	{
 		0xB1,0x08,0x5B,0xDA,0x1E,0xCA,0xDA,0xE9,0xEB,0xCB,0x2F,0x81,0xC0,0x65,0x7C,0x1F,
 		0x2F,0x6A,0x76,0x43,0x2E,0x45,0xD0,0x16,0x71,0x4E,0xB8,0x8D,0x75,0x85,0xC4,0xFC,
@@ -625,10 +625,10 @@ namespace gost
 
 	static void AddModulo512(const void *a, const void *b, void *c)
 	{
-		const byte *A = (byte*)a, *B = (byte*)b;
-		byte *C = (byte*)c;
+        const byte *A = (byte*)a, *B = (byte*)b;
+        byte *C = (byte*)c;
 
-		int t = 0;
+        int t = 0;
 	#ifdef FULL_UNROLL
 	#define ADDBYTE_8(i) t = A[i] + B[i] + (t >> 8); C[i] = t & 0xFF;
 
