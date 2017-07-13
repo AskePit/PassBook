@@ -40,6 +40,8 @@ PasswordDialog::PasswordDialog(QWidget *parent)
         ui->passwordLine->setDisabled(true);
         ui->enterButton->setDisabled(true);
     }
+
+    ui->passwordLine->setFocus();
 }
 
 PasswordDialog::~PasswordDialog()
@@ -54,7 +56,7 @@ void PasswordDialog::on_enterButton_clicked()
 
     QFile f(filename);
     if (!f.open(QIODevice::ReadOnly)) {
-        ui->msgLabel->setText("Account log in error");
+        ui->msgLabel->setText(tr("Account log in error"));
         return;
     }
 
@@ -64,7 +66,7 @@ void PasswordDialog::on_enterButton_clicked()
     PassBook* passBook = new PassBook(filename, master);
     if(!passBook->load()) {
         delete passBook;
-        ui->msgLabel->setText("Wrong password");
+        ui->msgLabel->setText(tr("Wrong password"));
         return;
     }
 
@@ -81,7 +83,7 @@ void PasswordDialog::on_deleteButton_clicked()
 
     QFile f(filename);
     if (!f.open(QIODevice::ReadOnly)) {
-        ui->msgLabel->setText("Account error");
+        ui->msgLabel->setText(tr("Account error"));
         return;
     }
 
@@ -90,7 +92,7 @@ void PasswordDialog::on_deleteButton_clicked()
 
     PassBook passBook(filename, master);
     if(passBook.verify() < 0) {
-        ui->msgLabel->setText("Wrong password");
+        ui->msgLabel->setText(tr("Wrong password"));
         return;
     }
 
@@ -105,7 +107,7 @@ void PasswordDialog::deleteAccount()
     QString filename = ui->loginBox->currentText() + ACCOUNT_EXT;
     QFile(filename).remove();
 
-    ui->msgLabel->setText("Account \"" + ui->loginBox->currentText()+"\" deleted");
+    ui->msgLabel->setText(tr("Account \"%1\" deleted").arg(ui->loginBox->currentText()));
     ui->loginBox->removeItem(ui->loginBox->currentIndex());
     ui->passwordLine->clear();
 

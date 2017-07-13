@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 #include <QDesktopWidget>
-#include <QApplication>
+#include <QFileInfo>
 
 void memrandomset(byte* data, size_t size)
 {
@@ -23,6 +23,28 @@ void memrandomset(byte* data, size_t size)
 void memrandomset(SecureBytes &bytes)
 {
     memrandomset(as<byte*>(bytes), bytes.size());
+}
+
+int callQuestionDialog(const QString &message)
+{
+    QMessageBox msgBox;
+    msgBox.setText(message);
+
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+    return msgBox.exec();
+}
+
+bool copyFileForced(const QString &from, const QString &to)
+{
+    if (QFileInfo(from) == QFileInfo(to)) {
+        return true;
+    }
+
+    if (QFile::exists(to)) {
+        QFile::remove(to);
+    }
+    return QFile::copy(from, to);
 }
 
 QString passGenerate(int n, PasswordType::type type)

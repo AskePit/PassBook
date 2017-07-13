@@ -3,9 +3,11 @@
 #include "hash.h"
 #include "utils.h"
 #include <QFileInfo>
+#include <QDir>
 #include <QFontMetrics>
 #include <QPixmap>
 #include <QPainter>
+#include <QDebug>
 
 PassBook::PassBook(const QString &fileName, const Master &master)
     : m_loaded(false)
@@ -113,11 +115,24 @@ bool PassBook::load()
     return m_loaded = true;
 }
 
+void PassBook::backupFile()
+{
+    QString backupDir {"backup"};
+    QDir{}.mkpath(backupDir);
+    QString baseName { QFileInfo{m_fileName}.baseName() };
+    QString backup1Name { QString{"%1/%2.backup.1"}.arg(backupDir, baseName) };
+    QString backup2Name { QString{"%1/%2.backup.2"}.arg(backupDir, baseName) };
+    copyFileForced(backup1Name, backup2Name);
+    copyFileForced(m_fileName, backup1Name);
+}
+
 void PassBook::save()
 {
     if(!m_changed) {
         return;
     }
+
+    backupFile();
 
     using namespace gost;
 
@@ -176,7 +191,6 @@ bool PassBook::noteUp(int i)
         return false;
     }
     m_notes.swap(i, i-1);
-    emit dataChanged(index(i, Column::Name), index(i+1, Column::Password), {Qt::DisplayRole, Qt::DecorationRole});
     m_changed = true;
 
     return true;
@@ -188,7 +202,6 @@ bool PassBook::noteDown(int i)
         return false;
     }
     m_notes.swap(i, i+1);
-    emit dataChanged(index(i-1, Column::Name), index(i, Column::Password), {Qt::DisplayRole, Qt::DecorationRole});
     m_changed = true;
 
     return true;
@@ -246,11 +259,11 @@ QVariant PassBook::headerData(int section, Qt::Orientation orientation, int role
 
     if(orientation == Qt::Horizontal) {
         switch (section) {
-            case Column::Id: return "№";
-            case Column::Name: return "Resource";
-            case Column::Url: return "URL";
-            case Column::Login: return "Login";
-            case Column::Password: return "Password";
+            case Column::Id: return tr("№");
+            case Column::Name: return tr("Resource");
+            case Column::Url: return tr("URL");
+            case Column::Login: return tr("Login");
+            case Column::Password: return tr("Password");
             default: return QVariant();
         }
     } else {
@@ -286,13 +299,47 @@ bool PassBook::setData(const QModelIndex &index, const QVariant &value, int role
     return changed;
 }
 
+bool PassBook::setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles)
+{
+    if(!roles.contains(Qt::EditRole) && !roles.contains(Qt::DisplayRole)) {
+        return false;
+    }
+
+    Note &note = m_notes[index.row()];
+
+    const QVariant &value = roles.contains(Qt::DisplayRole) ? roles[Qt::DisplayRole] : roles[Qt::EditRole];
+    const QString v = value.toString();
+
+    bool changed = false;
+    switch (index.column()) {
+        case Column::Name: note.source = v; changed = true; break;
+        case Column::Url: note.URL = v; changed = true; break;
+        case Column::Login: note.login = v; changed = true; break;
+        case Column::Password: note.password = qvariant_cast<Password>(value); changed = true; break;
+        default: break;
+    }
+
+    if(changed) {
+        emit dataChanged(index, index, {Qt::DisplayRole});
+        m_changed = true;
+    }
+
+    return changed;
+}
+
 Qt::ItemFlags PassBook::flags(const QModelIndex &index) const
 {
-    Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren;
+    Qt::ItemFlags f = QAbstractTableModel::flags(index) | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
     int c = index.column();
     if(c != Column::Id) {
         f |= Qt::ItemIsEditable;
+    }
+
+    if(index.isValid()) {
+        f |= Qt::ItemNeverHasChildren | Qt::ItemIsDragEnabled;
+    } else {
+        f |= Qt::ItemIsDropEnabled;
     }
 
     return f;
@@ -300,9 +347,17 @@ Qt::ItemFlags PassBook::flags(const QModelIndex &index) const
 
 bool PassBook::insertRows(int row, int count, const QModelIndex &parent)
 {
-    beginInsertRows(parent, row, row + count - 1);
+    Q_UNUSED(parent);
+
+    if(row == -1) {
+        row = rowCount();
+    }
+
+    beginInsertRows(QModelIndex(), row, row + count - 1);
     for(int i = 0; i<count; ++i) {
-        m_notes.insert(row, Note());
+        Note &&note = Note();
+        note.password.load("", m_master);
+        m_notes.insert(row, std::move(note));
     }
     endInsertRows();
 
@@ -312,7 +367,9 @@ bool PassBook::insertRows(int row, int count, const QModelIndex &parent)
 
 bool PassBook::removeRows(int row, int count, const QModelIndex &parent)
 {
-    beginRemoveRows(parent, row, row + count - 1);
+    Q_UNUSED(parent);
+
+    beginRemoveRows(QModelIndex(), row, row + count - 1);
     for(int i = 0; i<count; ++i) {
         m_notes.removeAt(row);
     }
@@ -320,4 +377,48 @@ bool PassBook::removeRows(int row, int count, const QModelIndex &parent)
 
     m_changed = true;
     return true;
+}
+
+bool PassBook::moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent, int destinationChild)
+{
+    Q_UNUSED(sourceParent);
+    Q_UNUSED(destinationParent);
+
+    beginMoveRows(QModelIndex(), sourceRow, sourceRow + count - 1, QModelIndex(), destinationChild);
+
+    int dist = sourceRow - destinationChild;
+
+    if(count == 1 && dist == 1) {
+        noteUp(sourceRow);
+    } else if (count == 1 && dist == -2) {
+        noteDown(sourceRow);
+    } else {
+        for(int i = 0; i<count; ++i) {
+            m_notes.insert(destinationChild + i, m_notes[sourceRow]);
+
+            int removeIndex = destinationChild > sourceRow ? sourceRow : sourceRow+1;
+            m_notes.removeAt(removeIndex);
+        }
+    }
+
+    endMoveRows();
+
+    m_changed = true;
+    return true;
+}
+
+Qt::DropActions PassBook::supportedDropActions() const
+{
+    return Qt::MoveAction | Qt::CopyAction;
+}
+
+bool PassBook::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+{
+    Q_UNUSED(column);
+
+    if(row == -1) {
+        row = rowCount();
+    }
+
+    return QAbstractTableModel::dropMimeData(data, action, row, 0, parent);
 }

@@ -22,11 +22,10 @@ void AccountCreateDialog::on_buttonBox_rejected()
 
 void AccountCreateDialog::on_buttonBox_accepted()
 {
-    if(ui->loginLine->text().isEmpty())                     ui->msg_label->setText("Enter Login");
-    else if (ui->loginLine->text().size() < 4)              ui->msg_label->setText("Too short Login");
-    else if (ui->keyLine->text().isEmpty())                 ui->msg_label->setText("Enter password");
-    else if (ui->keyLine_2->text().isEmpty())               ui->msg_label->setText("Confirm password");
-    else if (ui->keyLine->text() != ui->keyLine_2->text())  ui->msg_label->setText("Passwords do not match");
+    if(ui->loginLine->text().isEmpty())                     ui->msg_label->setText(tr("Enter Login"));
+    else if (ui->keyLine->text().isEmpty())                 ui->msg_label->setText(tr("Enter password"));
+    else if (ui->keyLine_2->text().isEmpty())               ui->msg_label->setText(tr("Confirm password"));
+    else if (ui->keyLine->text() != ui->keyLine_2->text())  ui->msg_label->setText(tr("Passwords do not match"));
     else {
         emit sendAccountCredentials(ui->loginLine->text(), ui->keyLine->text());
         close();

@@ -3,6 +3,8 @@
 
 #include <QString>
 #include <QVector>
+#include <QApplication>
+#include <QMessageBox>
 #include "platform.h"
 
 class QWidget;
@@ -32,11 +34,11 @@ enum_class (PasswordType) {
 enum_interface
     static QString toString(PasswordType::type t) {
         switch(t) {
-            case Letters:          return "Letters";
-            case LettersAndDigits: return "Letters & Digits";
+            case Letters:          return QApplication::tr("Letters");
+            case LettersAndDigits: return QApplication::tr("Letters & Digits");
             default:
-            case Standard:         return "Standard";
-            case Advanced:         return "Advanced";
+            case Standard:         return QApplication::tr("Standard");
+            case Advanced:         return QApplication::tr("Advanced");
         }
     }
 
@@ -44,6 +46,9 @@ enum_interface
         return { Letters, LettersAndDigits, Standard, Advanced };
     }
 };
+
+int callQuestionDialog(const QString &message);
+bool copyFileForced(const QString &from, const QString &to);
 
 QString passGenerate(int n, PasswordType::type type);
 void allignWindowToCenter(QWidget *w);

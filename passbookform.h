@@ -29,7 +29,6 @@ public:
     PassBookDelegate(QWidget *parent = 0);
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
-    //QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     void setEditorData(QWidget *editor, const QModelIndex &index) const override;
     void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
@@ -55,13 +54,10 @@ public:
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
-    //void resizeEvent(QResizeEvent *event);
 
 private slots:
     void on_addButton_clicked();
     void on_deleteButton_clicked();
-    void on_upButton_clicked();
-    void on_downButton_clicked();
     void on_backButton_clicked();
     void on_actionSave_triggered();
     void on_actionEditPassword_triggered();
@@ -71,7 +67,6 @@ private slots:
 
     void save();
     void doubleClickReact(const QModelIndex& idx);
-    void enableControls(int row);
     void callPasswordContextMenu(const QPoint &pos);
 
 private:
@@ -80,6 +75,8 @@ private:
     QString login;
     PassBook* passBook;
     PassBookDelegate *passBookDelegate;
+
+    bool m_closeWithBack;
 };
 
 #endif // PASSBOOKFORM_H

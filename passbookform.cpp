@@ -80,6 +80,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     , login(login)
     , passBook(passBook)
     , passBookDelegate(new PassBookDelegate)
+    , m_closeWithBack(false)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
@@ -88,8 +89,6 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     allignWindowToCenter(this);
 
     addAction(ui->actionSave);
-
-    enableControls(false);
 
     TableEventFilter *filter = new TableEventFilter();
 
@@ -106,11 +105,6 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     ui->passTable->setColumnWidth(Column::Login, 100);
     ui->passTable->setColumnWidth(Column::Password, 300);
     ui->passTable->horizontalHeader()->setStretchLastSection(true);
-
-    connect(ui->passTable->selectionModel(), &QItemSelectionModel::currentRowChanged, [this](const QModelIndex &current, const QModelIndex &previous) {
-        Q_UNUSED(previous);
-        enableControls(current.row());
-    });
 
     connect(ui->passTable, &QTableView::doubleClicked, this, &PassBookForm::doubleClickReact);
     connect(ui->passTable, &QTableView::customContextMenuRequested, this, &PassBookForm::callPasswordContextMenu);
@@ -136,6 +130,8 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
         // trigger passwords to be repainted in case of comming from/to horizontal header
         emit passBook->dataChanged(passBook->index(0, Column::Password), passBook->index(passBook->rowCount()-1, Column::Password), {Qt::DisplayRole});
     });
+
+    ui->passTable->viewport()->setAcceptDrops(true);
 }
 
 PassBookForm::~PassBookForm()
@@ -175,24 +171,6 @@ void PassBookForm::on_deleteButton_clicked()
     passBook->removeRow(row);
 }
 
-void PassBookForm::on_upButton_clicked()
-{
-    int currentRow = ui->passTable->currentIndex().row();
-    bool ok = passBook->noteUp(currentRow);
-    if(ok) {
-        ui->passTable->selectRow(currentRow-1);
-    }
-}
-
-void PassBookForm::on_downButton_clicked()
-{
-    int currentRow = ui->passTable->currentIndex().row();
-    bool ok = passBook->noteDown(ui->passTable->currentIndex().row());
-    if(ok) {
-        ui->passTable->selectRow(currentRow+1);
-    }
-}
-
 void PassBookForm::save()
 {
     passBook->save();
@@ -200,8 +178,7 @@ void PassBookForm::save()
 
 void PassBookForm::on_backButton_clicked()
 {
-    PasswordDialog *w = new PasswordDialog;
-    w->show();
+    m_closeWithBack = true;
     close();
 }
 
@@ -212,22 +189,6 @@ void PassBookForm::doubleClickReact(const QModelIndex& idx)
         QClipboard *clipboard = QApplication::clipboard();
         SecureString &&pass = passBook->getPassword(idx.row());
         clipboard->setText( QString(std::move(pass)) );
-    }
-}
-
-void PassBookForm::enableControls(int row)
-{
-    bool enable = row != -1;
-
-    ui->downButton->setEnabled(enable);
-    ui->upButton->setEnabled(enable);
-
-    if(row == 0) {
-        ui->upButton->setEnabled(false);
-    }
-
-    if(row == passBook->rowCount()-1) {
-        ui->downButton->setEnabled(false);
     }
 }
 
@@ -256,7 +217,18 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     Q_UNUSED(event);
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->clear();
-    save();
+
+    if(passBook->wasChanged()) {
+        int ret = callQuestionDialog(tr("Do you want to save changes?"));
+        if(ret == QMessageBox::Ok) {
+            save();
+        }
+    }
+
+    if(m_closeWithBack) {
+        PasswordDialog *w = new PasswordDialog;
+        w->show();
+    }
 }
 
 void PassBookForm::on_actionSave_triggered()

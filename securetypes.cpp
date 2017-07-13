@@ -13,7 +13,7 @@ SecureString::SecureString(QString &&str) : QString(str) {}
 SecureString::~SecureString()
 {
     // QString::data() will trigger COW, so use QString::constData()
-    //wipememory(constData(), size()*2); // QChar is 16 bytes
+    wipememory(constData(), size()*2); // QChar is 16 bytes
 }
 
 SecureBytes::SecureBytes() : QByteArray() {}
@@ -171,9 +171,6 @@ SecureString Password::get() const
     return SecureString( QString::fromUtf8(pass) );
 }
 
-static const int PIXMAP_W = 150;
-static const int PIXMAP_H = 20;
-
 void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool show)
 {
     const QRect &rect = option.rect;
@@ -194,7 +191,7 @@ void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool
         const int margin = 4;
         int w = fm.width(pass) + margin;
 
-        QPixmap pixmap(w, PIXMAP_H);
+        QPixmap pixmap(w, rect.height());
         pixmap.fill();
 
         QPainter p(&pixmap);
@@ -203,14 +200,14 @@ void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool
         if(option.state & QStyle::State_Selected) {
             p.fillRect(0, 0, rect.width(), rect.height(), QColor(0xF5, 0xF5, 0xF5));
         }
-        p.drawText(margin, margin, w, PIXMAP_H, 0, pass);
+        p.drawText(margin, margin, w, rect.height(), 0, pass);
         painter->drawPixmap(rect.x(), rect.y(), pixmap);
     } else {
-        QPixmap pixmap(rect.width(), PIXMAP_H);
+        QPixmap pixmap(rect.width(), rect.height());
         pixmap.fill();
 
         QPainter p(&pixmap);
-        p.fillRect(0, 0, rect.width(), PIXMAP_H, Qt::Dense4Pattern);
+        p.fillRect(0, 0, rect.width(), rect.height(), Qt::Dense4Pattern);
         painter->drawPixmap(option.rect.x(), rect.y(), pixmap);
     }
 }
