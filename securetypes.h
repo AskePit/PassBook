@@ -81,13 +81,13 @@ public:
     {
         arch << object.m_loaded;
         arch << object.m_cryptedPass;
-        arch << reinterpret_cast<int>(object.m_master);
+        arch << reinterpret_cast<ptrdiff_t>(object.m_master);
         return arch;
     }
 
     friend QDataStream &operator >> (QDataStream &arch, Password &object)
     {
-        int masterAddr;
+        ptrdiff_t masterAddr;
 
         arch >> object.m_loaded;
         arch >> object.m_cryptedPass;
