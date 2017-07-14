@@ -17,9 +17,9 @@ static const QString ACCOUNT_EXT{".dat"};
 PasswordDialog::PasswordDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::PasswordDialog)
+    , m_settings("settings.ini", QSettings::IniFormat)
 {
     ui->setupUi(this);
-    allignWindowToCenter(this);
     setAttribute(Qt::WA_DeleteOnClose);
 
     QString accountsPath {""};
@@ -42,11 +42,18 @@ PasswordDialog::PasswordDialog(QWidget *parent)
     }
 
     ui->passwordLine->setFocus();
+    restoreGeometry(m_settings.value("loginDialogGeometry").toByteArray());
 }
 
 PasswordDialog::~PasswordDialog()
 {
     delete ui;
+}
+
+void PasswordDialog::closeEvent(QCloseEvent *e)
+{
+    Q_UNUSED(e);
+    m_settings.setValue("loginDialogGeometry", saveGeometry());
 }
 
 void PasswordDialog::on_enterButton_clicked()

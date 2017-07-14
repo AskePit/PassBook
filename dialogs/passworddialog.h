@@ -2,6 +2,7 @@
 #define PASSWORDDIALOG_H
 
 #include <QDialog>
+#include <QSettings>
 
 namespace Ui {
 class PasswordDialog;
@@ -23,8 +24,12 @@ private slots:
     void createAccount(const QString &log, QString &key);
     void deleteAccount();
 
+protected:
+    void closeEvent(QCloseEvent *e);
+
 private:
     Ui::PasswordDialog *ui;
+    QSettings m_settings;
 };
 
 #endif // PASSWORDDIALOG_H

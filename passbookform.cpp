@@ -81,12 +81,12 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     , passBook(passBook)
     , passBookDelegate(new PassBookDelegate)
     , m_closeWithBack(false)
+    , m_settings("settings.ini", QSettings::IniFormat)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_Hover);
     setMouseTracking(true);
-    allignWindowToCenter(this);
 
     addAction(ui->actionSave);
 
@@ -132,6 +132,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     });
 
     ui->passTable->viewport()->setAcceptDrops(true);
+    restoreGeometry(m_settings.value("mainFormGeometry").toByteArray());
 }
 
 PassBookForm::~PassBookForm()
@@ -217,6 +218,8 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     Q_UNUSED(event);
     QClipboard *clipboard { QApplication::clipboard() };
     clipboard->clear();
+
+    m_settings.setValue("mainFormGeometry", saveGeometry());
 
     if(passBook->wasChanged()) {
         int ret { callQuestionDialog(tr("Do you want to save changes?")) };

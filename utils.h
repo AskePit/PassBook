@@ -51,7 +51,6 @@ int callQuestionDialog(const QString &message);
 bool copyFileForced(const QString &from, const QString &to);
 
 QString passGenerate(int n, PasswordType::type type);
-void allignWindowToCenter(QWidget *w);
 
 /*
  * Macro wipememory, wipememory2, fast_wipememory2 implementations is

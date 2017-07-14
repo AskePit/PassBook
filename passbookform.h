@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QStyledItemDelegate>
+#include <QSettings>
 
 class PassBook;
 
@@ -77,6 +78,7 @@ private:
     PassBookDelegate *passBookDelegate;
 
     bool m_closeWithBack;
+    QSettings m_settings;
 };
 
 #endif // PASSBOOKFORM_H

@@ -12,7 +12,6 @@ KeyGenDialog::KeyGenDialog(PassBook &passBook, int row, QWidget *parent)
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
-    allignWindowToCenter(this);
 
     for(auto t : PasswordType::iterate()) {
         ui->comboBox->addItem(PasswordType::toString(t));
