@@ -7,7 +7,6 @@
 #include <QFontMetrics>
 #include <QPixmap>
 #include <QPainter>
-#include <QDebug>
 
 PassBook::PassBook(const QString &fileName, const Master &master)
     : m_loaded(false)

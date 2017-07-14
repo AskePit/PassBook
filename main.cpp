@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "dialogs/passworddialog.h"
+#include "dialogs/logindialog.h"
 #include "securetypes.h"
 
 int main(int argc, char *argv[])
@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 
     qRegisterMetaTypeStreamOperators<Password>("Password");
 
-    PasswordDialog *w { new PasswordDialog };
+    LoginDialog *w { new LoginDialog };
     w->show();
 
     return a.exec();

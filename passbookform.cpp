@@ -8,7 +8,7 @@
 #include "utils.h"
 #include "passbook.h"
 
-#include "dialogs/passworddialog.h"
+#include "dialogs/logindialog.h"
 #include "dialogs/keygendialog.h"
 
 bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
@@ -77,9 +77,9 @@ void PassBookDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::PassBookForm)
-    , login(login)
-    , passBook(passBook)
-    , passBookDelegate(new PassBookDelegate)
+    , m_login(login)
+    , m_passBook(passBook)
+    , m_passBookDelegate(new PassBookDelegate)
     , m_closeWithBack(false)
     , m_settings("settings.ini", QSettings::IniFormat)
 {
@@ -98,7 +98,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     ui->passTable->horizontalHeader()->viewport()->installEventFilter(filter);
 
     ui->passTable->setModel(passBook);
-    ui->passTable->setItemDelegateForColumn(Column::Password, passBookDelegate);
+    ui->passTable->setItemDelegateForColumn(Column::Password, m_passBookDelegate);
     ui->passTable->setColumnWidth(Column::Id, 35);
     ui->passTable->setColumnWidth(Column::Name, 100);
     ui->passTable->setColumnWidth(Column::Url, 150);
@@ -116,15 +116,15 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
         bool isTable { watched == ui->passTable->viewport() };
         bool isPassword { c == Column::Password };
 
-        if(passBookDelegate->isInEditMode()) {
+        if(m_passBookDelegate->isInEditMode()) {
             return;
         }
 
         if(!isTable || !isPassword) {
-            passBookDelegate->setHoveredPassword(-1);
+            m_passBookDelegate->setHoveredPassword(-1);
         } else {
             int r = ui->passTable->rowAt(event->y());
-            passBookDelegate->setHoveredPassword(r);
+            m_passBookDelegate->setHoveredPassword(r);
         }
 
         // trigger passwords to be repainted in case of comming from/to horizontal header
@@ -139,7 +139,7 @@ PassBookForm::~PassBookForm()
 {
     QClipboard *clipboard { QApplication::clipboard() };
     clipboard->clear();
-    delete passBook;
+    delete m_passBook;
     delete ui;
 }
 
@@ -163,18 +163,18 @@ static qint32 hashPixmap(const QPixmap& pix)
 
 void PassBookForm::on_addButton_clicked()
 {
-    passBook->insertRow(passBook->rowCount());
+    m_passBook->insertRow(m_passBook->rowCount());
 }
 
 void PassBookForm::on_deleteButton_clicked()
 {
     int row { ui->passTable->currentIndex().row() };
-    passBook->removeRow(row);
+    m_passBook->removeRow(row);
 }
 
 void PassBookForm::save()
 {
-    passBook->save();
+    m_passBook->save();
 }
 
 void PassBookForm::on_backButton_clicked()
@@ -186,9 +186,9 @@ void PassBookForm::on_backButton_clicked()
 void PassBookForm::doubleClickReact(const QModelIndex& idx)
 {
     if(idx.column() == Column::Password) {
-        passBookDelegate->informDoubleClicked();
+        m_passBookDelegate->informDoubleClicked();
         QClipboard *clipboard { QApplication::clipboard() };
-        SecureString &&pass { passBook->getPassword(idx.row()) };
+        SecureString &&pass { m_passBook->getPassword(idx.row()) };
         clipboard->setText( QString{std::move(pass)} );
     }
 }
@@ -221,7 +221,7 @@ void PassBookForm::closeEvent(QCloseEvent *event)
 
     m_settings.setValue("mainFormGeometry", saveGeometry());
 
-    if(passBook->wasChanged()) {
+    if(m_passBook->wasChanged()) {
         int ret { callQuestionDialog(tr("Do you want to save changes?")) };
         if(ret == QMessageBox::Ok) {
             save();
@@ -229,7 +229,7 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     }
 
     if(m_closeWithBack) {
-        PasswordDialog *w = new PasswordDialog;
+        LoginDialog *w = new LoginDialog;
         w->show();
     }
 }
@@ -246,16 +246,16 @@ void PassBookForm::on_actionEditPassword_triggered()
 
 void PassBookForm::on_actionGeneratePassword_triggered()
 {
-    KeyGenDialog *d { new KeyGenDialog{*passBook, ui->passTable->currentIndex().row()} };
+    KeyGenDialog *d { new KeyGenDialog{*m_passBook, ui->passTable->currentIndex().row()} };
     d->show();
 }
 
 void PassBookForm::on_actionInsertAbove_triggered()
 {
-    passBook->insertRow(ui->passTable->currentIndex().row());
+    m_passBook->insertRow(ui->passTable->currentIndex().row());
 }
 
 void PassBookForm::on_actionInsertBelow_triggered()
 {
-    passBook->insertRow(ui->passTable->currentIndex().row()+1);
+    m_passBook->insertRow(ui->passTable->currentIndex().row()+1);
 }

@@ -5,16 +5,16 @@
 #include <QSettings>
 
 namespace Ui {
-class PasswordDialog;
+class LoginDialog;
 }
 
-class PasswordDialog : public QDialog
+class LoginDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit PasswordDialog(QWidget *parent = 0);
-    ~PasswordDialog();
+    explicit LoginDialog(QWidget *parent = 0);
+    ~LoginDialog();
 
 private slots:
     void on_createButton_clicked();
@@ -28,7 +28,7 @@ protected:
     void closeEvent(QCloseEvent *e);
 
 private:
-    Ui::PasswordDialog *ui;
+    Ui::LoginDialog *ui;
     QSettings m_settings;
 };
 

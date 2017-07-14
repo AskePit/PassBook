@@ -2,7 +2,6 @@
 #define PASSBOOK_H
 
 #include "securetypes.h"
-#include <QVector>
 #include <QAbstractTableModel>
 
 struct Note

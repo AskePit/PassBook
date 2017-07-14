@@ -3,7 +3,6 @@
 
 #include <QMetaType>
 #include <QDataStream>
-#include <QString>
 #include "platform.h"
 
 class SecureString : public QString

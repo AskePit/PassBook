@@ -1,5 +1,5 @@
-#include "passworddialog.h"
-#include "ui_passworddialog.h"
+#include "logindialog.h"
+#include "ui_logindialog.h"
 
 #include "passbookform.h"
 #include "accountdeletedialog.h"
@@ -14,9 +14,9 @@
 
 static const QString ACCOUNT_EXT{".dat"};
 
-PasswordDialog::PasswordDialog(QWidget *parent)
+LoginDialog::LoginDialog(QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::PasswordDialog)
+    , ui(new Ui::LoginDialog)
     , m_settings("settings.ini", QSettings::IniFormat)
 {
     ui->setupUi(this);
@@ -45,18 +45,18 @@ PasswordDialog::PasswordDialog(QWidget *parent)
     restoreGeometry(m_settings.value("loginDialogGeometry").toByteArray());
 }
 
-PasswordDialog::~PasswordDialog()
+LoginDialog::~LoginDialog()
 {
     delete ui;
 }
 
-void PasswordDialog::closeEvent(QCloseEvent *e)
+void LoginDialog::closeEvent(QCloseEvent *e)
 {
     Q_UNUSED(e);
     m_settings.setValue("loginDialogGeometry", saveGeometry());
 }
 
-void PasswordDialog::on_enterButton_clicked()
+void LoginDialog::on_enterButton_clicked()
 {
     ui->msgLabel->clear();
     QString filename {ui->loginBox->currentText() + ACCOUNT_EXT};
@@ -83,7 +83,7 @@ void PasswordDialog::on_enterButton_clicked()
     close();
 }
 
-void PasswordDialog::on_deleteButton_clicked()
+void LoginDialog::on_deleteButton_clicked()
 {
     ui->msgLabel->clear();
     QString filename {ui->loginBox->currentText() + ACCOUNT_EXT};
@@ -106,10 +106,10 @@ void PasswordDialog::on_deleteButton_clicked()
     AccountDeleteDialog *d { new AccountDeleteDialog {ui->loginBox->currentText()} };
     d->show();
 
-    connect(d, &AccountDeleteDialog::accept_deleting, this, &PasswordDialog::deleteAccount);
+    connect(d, &AccountDeleteDialog::accept_deleting, this, &LoginDialog::deleteAccount);
 }
 
-void PasswordDialog::deleteAccount()
+void LoginDialog::deleteAccount()
 {
     QString filename {ui->loginBox->currentText() + ACCOUNT_EXT};
     QFile{filename}.remove();
@@ -125,15 +125,15 @@ void PasswordDialog::deleteAccount()
     }
 }
 
-void PasswordDialog::on_createButton_clicked()
+void LoginDialog::on_createButton_clicked()
 {
     AccountCreateDialog *d { new AccountCreateDialog };
     d->show();
 
-    connect(d, &AccountCreateDialog::sendAccountCredentials, this, &PasswordDialog::createAccount);
+    connect(d, &AccountCreateDialog::sendAccountCredentials, this, &LoginDialog::createAccount);
 }
 
-void PasswordDialog::createAccount(const QString &log, QString &key)
+void LoginDialog::createAccount(const QString &log, QString &key)
 {
     Master master {std::move(key)};
 

@@ -1,7 +1,6 @@
 #ifndef PASSBOOKFORM_H
 #define PASSBOOKFORM_H
 
-#include <QWidget>
 #include <QStyledItemDelegate>
 #include <QSettings>
 
@@ -51,7 +50,7 @@ class PassBookForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit PassBookForm(PassBook* passBook, QString login, QWidget *parent = 0);
+    explicit PassBookForm(PassBook* m_passBook, QString m_login, QWidget *parent = 0);
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
@@ -73,9 +72,9 @@ private slots:
 private:
     Ui::PassBookForm *ui;
 
-    QString login;
-    PassBook* passBook;
-    PassBookDelegate *passBookDelegate;
+    QString m_login;
+    PassBook* m_passBook;
+    PassBookDelegate *m_passBookDelegate;
 
     bool m_closeWithBack;
     QSettings m_settings;

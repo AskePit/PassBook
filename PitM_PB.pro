@@ -8,12 +8,12 @@ SOURCES += main.cpp\
     passbookform.cpp \
     hash.cpp \
     crypt.cpp \
-    dialogs/passworddialog.cpp \
     dialogs/keygendialog.cpp \
     utils.cpp \
     securetypes.cpp \
     dialogs/accountcreatedialog.cpp \
-    dialogs/accountdeletedialog.cpp
+    dialogs/accountdeletedialog.cpp \
+    dialogs/logindialog.cpp
 
 HEADERS  += \
     passbook.h \
@@ -21,18 +21,18 @@ HEADERS  += \
     platform.h \
     hash.h \
     crypt.h \
-    dialogs/passworddialog.h \
     dialogs/keygendialog.h \
     utils.h \
     securetypes.h \
     dialogs/accountcreatedialog.h \
-    dialogs/accountdeletedialog.h
+    dialogs/accountdeletedialog.h \
+    dialogs/logindialog.h
 
 FORMS    += \
     passbookform.ui \
-    dialogs/passworddialog.ui \
     dialogs/keygendialog.ui \
     dialogs/accountcreatedialog.ui \
-    dialogs/accountdeletedialog.ui
+    dialogs/accountdeletedialog.ui \
+    dialogs/logindialog.ui
 
 DEFINES *= QT_USE_QSTRINGBUILDER

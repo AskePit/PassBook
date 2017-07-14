@@ -1,8 +1,6 @@
 #ifndef INSTRUMENTS_H
 #define INSTRUMENTS_H
 
-#include <QString>
-#include <QVector>
 #include <QApplication>
 #include <QMessageBox>
 #include "platform.h"

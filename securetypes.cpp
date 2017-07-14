@@ -3,7 +3,6 @@
 #include "crypt.h"
 #include "hash.h"
 
-#include <algorithm>
 #include <functional>
 #include <QPainter>
 #include <QStyleOptionViewItem>
