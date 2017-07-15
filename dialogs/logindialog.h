@@ -36,7 +36,7 @@ protected:
 private:
     Ui::LoginDialog *ui;
 
-    QString currentAccountFile();
+    QString currentAccountFile(QString newLogin = QString());
 };
 
 #endif // PASSWORDDIALOG_H

@@ -2,6 +2,7 @@
 #include "crypt.h"
 #include "hash.h"
 #include "utils.h"
+#include "settings.h"
 #include <QFileInfo>
 #include <QDir>
 #include <QFontMetrics>
@@ -116,7 +117,7 @@ bool PassBook::load()
 
 void PassBook::backupFile()
 {
-    QString backupDir {"backup"};
+    QString backupDir { appSettings.accountsPath.isEmpty() ? "backup" : QString{appSettings.accountsPath + "/backup"}};
     QDir{}.mkpath(backupDir);
     QString baseName { QFileInfo{m_fileName}.baseName() };
     QString backup1Name { QString{"%1/%2.backup.1"}.arg(backupDir, baseName) };

@@ -55,20 +55,30 @@ void SettingsDialog::setDefaultPath()
 
 void SettingsDialog::on_buttonBox_accepted()
 {
+    bool langChanged = false;
+    bool pathChanged = false;
+
     Language::type lang = static_cast<Language::type>( ui->languageComboBox->currentData().toInt() );
-    if(lang != appSettings.language) {
+    langChanged = lang != appSettings.language;
+    if(langChanged) {
         appSettings.language = lang;
-        emit languageChanged();
     }
 
     bool defaultPath = ui->defaultButton->isChecked();
     QString accountsPath = defaultPath ? "" : ui->pathEdit->text();
-    if(accountsPath != appSettings.accountsPath) {
+    pathChanged = accountsPath != appSettings.accountsPath;
+    if(pathChanged) {
         appSettings.accountsPath = accountsPath;
-        emit accountsPathChanged();
     }
 
     storeSettings();
+
+    if(langChanged) {
+        emit languageChanged();
+    }
+    if(pathChanged) {
+        emit accountsPathChanged();
+    }
 
     QDialog::accept();
 }

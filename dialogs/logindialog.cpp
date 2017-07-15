@@ -30,7 +30,7 @@ LoginDialog::LoginDialog(QWidget *parent)
     connect(ui->passwordLine, &QLineEdit::returnPressed, ui->enterButton, &QPushButton::click);
 
     ui->passwordLine->setFocus();
-    restoreGeometry(iniSettings.value("loginDialogGeometry").toByteArray());
+    restoreGeometry(iniSettings.value("LoginDialogGeometry").toByteArray());
 }
 
 LoginDialog::~LoginDialog()
@@ -41,7 +41,8 @@ LoginDialog::~LoginDialog()
 void LoginDialog::closeEvent(QCloseEvent *e)
 {
     Q_UNUSED(e);
-    iniSettings.setValue("loginDialogGeometry", saveGeometry());
+    iniSettings.setValue("LoginDialogGeometry", saveGeometry());
+    iniSettings.setValue("LastAccount", ui->loginBox->currentText());
 }
 
 void LoginDialog::loadAccounts()
@@ -60,17 +61,19 @@ void LoginDialog::loadAccounts()
         ui->loginBox->addItem(str);
     }
 
-    if(ui->loginBox->count() == 0) {
-        ui->deleteButton->setDisabled(true);
-        ui->passwordLine->setDisabled(true);
-        ui->enterButton->setDisabled(true);
-    }
+    bool accountsAvaliable = ui->loginBox->count() != 0;
+    ui->deleteButton->setEnabled(accountsAvaliable);
+    ui->passwordLine->setEnabled(accountsAvaliable);
+    ui->enterButton->setEnabled(accountsAvaliable);
+
+    ui->loginBox->setCurrentText( iniSettings.value("LastAccount").toString() );
 }
 
-QString LoginDialog::currentAccountFile()
+QString LoginDialog::currentAccountFile(QString newLogin)
 {
     bool isDefault = appSettings.accountsPath.isEmpty();
-    return QString{isDefault ? "%1%2%3": "%1/%2%3"}.arg(appSettings.accountsPath, ui->loginBox->currentText(), ACCOUNT_EXT);
+    QString login { newLogin.isNull() ? ui->loginBox->currentText() : newLogin };
+    return QString{isDefault ? "%1%2%3": "%1/%2%3"}.arg(appSettings.accountsPath, login, ACCOUNT_EXT);
 }
 
 void LoginDialog::on_enterButton_clicked()
@@ -120,7 +123,7 @@ void LoginDialog::on_deleteButton_clicked()
         return;
     }
 
-    AccountDeleteDialog *d { new AccountDeleteDialog {ui->loginBox->currentText()} };
+    AccountDeleteDialog *d { new AccountDeleteDialog {ui->loginBox->currentText(), this} };
     d->show();
 
     connect(d, &AccountDeleteDialog::accept_deleting, this, &LoginDialog::deleteAccount);
@@ -144,7 +147,7 @@ void LoginDialog::deleteAccount()
 
 void LoginDialog::on_createButton_clicked()
 {
-    AccountCreateDialog *d { new AccountCreateDialog };
+    AccountCreateDialog *d { new AccountCreateDialog {this} };
     d->show();
 
     connect(d, &AccountCreateDialog::sendAccountCredentials, this, &LoginDialog::createAccount);
@@ -160,7 +163,7 @@ void LoginDialog::createAccount(const QString &log, QString &key)
         hs = door.getHash();
     }
 
-    QString accountFile { QString{"%1/%2%3"}.arg(appSettings.accountsPath, log, ACCOUNT_EXT) };
+    QString accountFile { currentAccountFile(log) };
     QFile f {accountFile};
     f.open(QIODevice::WriteOnly);
     f.write(as<char*>(hs.hash), gost::SIZE_OF_HASH);

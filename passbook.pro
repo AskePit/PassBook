@@ -1,6 +1,6 @@
 QT += core gui widgets
 
-TARGET = PitM_PB
+TARGET = passbook
 TEMPLATE = app
 
 SOURCES += main.cpp\
