@@ -1,6 +1,7 @@
 #ifndef PASSBOOKFORM_H
 #define PASSBOOKFORM_H
 
+#include <QMainWindow>
 #include <QStyledItemDelegate>
 #include <QSettings>
 
@@ -45,12 +46,12 @@ private:
     mutable bool m_doubleClicked;
 };
 
-class PassBookForm : public QWidget
+class PassBookForm : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit PassBookForm(PassBook* m_passBook, QString m_login, QWidget *parent = 0);
+    explicit PassBookForm(PassBook* m_passBook, QWidget *parent = 0);
     ~PassBookForm();
 
     void closeEvent(QCloseEvent *event);
@@ -72,12 +73,10 @@ private slots:
 private:
     Ui::PassBookForm *ui;
 
-    QString m_login;
     PassBook* m_passBook;
     PassBookDelegate *m_passBookDelegate;
 
     bool m_closeWithBack;
-    QSettings m_settings;
 };
 
 #endif // PASSBOOKFORM_H

@@ -25,14 +25,24 @@ void memrandomset(SecureBytes &bytes)
     memrandomset(as<byte*>(bytes), bytes.size());
 }
 
-int callQuestionDialog(const QString &message)
+int callQuestionDialog(const QString &message, QWidget *parent)
 {
-    QMessageBox msgBox;
+    QMessageBox msgBox {parent};
     msgBox.setText(message);
 
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Cancel);
     return msgBox.exec();
+}
+
+void callInfoDialog(const QString &message, QWidget *parent)
+{
+    QMessageBox msgBox {parent};
+    msgBox.setText(message);
+
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    msgBox.exec();
 }
 
 bool copyFileForced(const QString &from, const QString &to)

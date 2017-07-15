@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>PassBookForm</class>
- <widget class="QWidget" name="PassBookForm">
+ <widget class="QMainWindow" name="PassBookForm">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,6 +10,10 @@
     <height>313</height>
    </rect>
   </property>
+  <property name="windowTitle">
+   <string>Pass Book</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
   <property name="sizePolicy">
    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
     <horstretch>0</horstretch>
@@ -30,9 +34,6 @@
   </property>
   <property name="mouseTracking">
    <bool>true</bool>
-  </property>
-  <property name="windowTitle">
-   <string>Pass Book</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_3">
    <item>
@@ -235,6 +236,7 @@
     </layout>
    </item>
   </layout>
+  </widget>
   <action name="actionSave">
    <property name="checkable">
     <bool>true</bool>

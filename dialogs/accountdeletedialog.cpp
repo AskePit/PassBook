@@ -11,7 +11,7 @@ AccountDeleteDialog::AccountDeleteDialog(const QString &login, QWidget *parent)
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Dialog);
     setAttribute(Qt::WA_DeleteOnClose);
 
-    ui->label->setText(tr("Are you sure you want to delete \'%1\'' account?").arg(login));
+    ui->label->setText(tr("Are you sure you want to delete \'%1\' account?").arg(login));
 
     connect(ui->buttonBox, &QDialogButtonBox::clicked, [this] (QAbstractButton *button) {
         bool ok = (QPushButton*)button == ui->buttonBox->button(QDialogButtonBox::Ok);

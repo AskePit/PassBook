@@ -74,14 +74,12 @@ void PassBookDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
     m_inEditMode = false;
 }
 
-PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
-    : QWidget(parent)
+PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
+    : QMainWindow(parent)
     , ui(new Ui::PassBookForm)
-    , m_login(login)
     , m_passBook(passBook)
     , m_passBookDelegate(new PassBookDelegate)
     , m_closeWithBack(false)
-    , m_settings("settings.ini", QSettings::IniFormat)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
@@ -132,7 +130,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QString login, QWidget *parent)
     });
 
     ui->passTable->viewport()->setAcceptDrops(true);
-    restoreGeometry(m_settings.value("mainFormGeometry").toByteArray());
+    restoreGeometry(iniSettings.value("mainFormGeometry").toByteArray());
 }
 
 PassBookForm::~PassBookForm()
@@ -219,10 +217,10 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     QClipboard *clipboard { QApplication::clipboard() };
     clipboard->clear();
 
-    m_settings.setValue("mainFormGeometry", saveGeometry());
+    iniSettings.setValue("mainFormGeometry", saveGeometry());
 
     if(m_passBook->wasChanged()) {
-        int ret { callQuestionDialog(tr("Do you want to save changes?")) };
+        int ret { callQuestionDialog(tr("Do you want to save changes?"), this) };
         if(ret == QMessageBox::Ok) {
             save();
         }

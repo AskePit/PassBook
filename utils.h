@@ -40,12 +40,13 @@ enum_interface
         }
     }
 
-    static QVector<PasswordType::type> iterate() {
+    static QList<PasswordType::type> enumerate() {
         return { Letters, LettersAndDigits, Standard, Advanced };
     }
 };
 
-int callQuestionDialog(const QString &message);
+int callQuestionDialog(const QString &message, QWidget *parent = nullptr);
+void callInfoDialog(const QString &message, QWidget *parent = nullptr);
 bool copyFileForced(const QString &from, const QString &to);
 
 QString passGenerate(int n, PasswordType::type type);

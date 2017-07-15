@@ -4,6 +4,7 @@
 #include "passbookform.h"
 #include "accountdeletedialog.h"
 #include "accountcreatedialog.h"
+#include "settingsdialog.h"
 
 #include "utils.h"
 #include "crypt.h"
@@ -15,20 +16,44 @@
 static const QString ACCOUNT_EXT{".dat"};
 
 LoginDialog::LoginDialog(QWidget *parent)
-    : QDialog(parent)
+    : QMainWindow(parent)
     , ui(new Ui::LoginDialog)
-    , m_settings("settings.ini", QSettings::IniFormat)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
 
-    QString accountsPath {""};
+    loadSettings();
+    ui->retranslateUi(this);
+
+    loadAccounts();
+
+    connect(ui->passwordLine, &QLineEdit::returnPressed, ui->enterButton, &QPushButton::click);
+
+    ui->passwordLine->setFocus();
+    restoreGeometry(iniSettings.value("loginDialogGeometry").toByteArray());
+}
+
+LoginDialog::~LoginDialog()
+{
+    delete ui;
+}
+
+void LoginDialog::closeEvent(QCloseEvent *e)
+{
+    Q_UNUSED(e);
+    iniSettings.setValue("loginDialogGeometry", saveGeometry());
+}
+
+void LoginDialog::loadAccounts()
+{
+    QString &accountsPath {appSettings.accountsPath};
     QString filter(QString{"*%1"}.arg(ACCOUNT_EXT));
     int filterLength {filter.length() - 1};
 
     QDir accountsDir {accountsPath, filter, QDir::Name, QDir::Files | QDir::Hidden | QDir::NoSymLinks};
     QFileInfoList fileList {accountsDir.entryInfoList()};
 
+    ui->loginBox->clear();
     for(const auto &file : fileList) {
         QString str {file.fileName()};
         str.truncate(str.size() - filterLength);
@@ -40,30 +65,22 @@ LoginDialog::LoginDialog(QWidget *parent)
         ui->passwordLine->setDisabled(true);
         ui->enterButton->setDisabled(true);
     }
-
-    ui->passwordLine->setFocus();
-    restoreGeometry(m_settings.value("loginDialogGeometry").toByteArray());
 }
 
-LoginDialog::~LoginDialog()
+QString LoginDialog::currentAccountFile()
 {
-    delete ui;
-}
-
-void LoginDialog::closeEvent(QCloseEvent *e)
-{
-    Q_UNUSED(e);
-    m_settings.setValue("loginDialogGeometry", saveGeometry());
+    bool isDefault = appSettings.accountsPath.isEmpty();
+    return QString{isDefault ? "%1%2%3": "%1/%2%3"}.arg(appSettings.accountsPath, ui->loginBox->currentText(), ACCOUNT_EXT);
 }
 
 void LoginDialog::on_enterButton_clicked()
 {
-    ui->msgLabel->clear();
-    QString filename {ui->loginBox->currentText() + ACCOUNT_EXT};
+    ui->statusBar->clearMessage();
+    QString filename { currentAccountFile() };
 
     QFile f {filename};
     if (!f.open(QIODevice::ReadOnly)) {
-        ui->msgLabel->setText(tr("Account log in error"));
+        ui->statusBar->showMessage(tr("Account log in error"));
         return;
     }
 
@@ -73,11 +90,11 @@ void LoginDialog::on_enterButton_clicked()
     PassBook* passBook = new PassBook {filename, master};
     if(!passBook->load()) {
         delete passBook;
-        ui->msgLabel->setText(tr("Wrong password"));
+        ui->statusBar->showMessage(tr("Wrong password"));
         return;
     }
 
-    PassBookForm *passBookForm { new PassBookForm {passBook, ui->loginBox->currentText()} };
+    PassBookForm *passBookForm { new PassBookForm {passBook} };
     passBookForm->show();
 
     close();
@@ -85,12 +102,12 @@ void LoginDialog::on_enterButton_clicked()
 
 void LoginDialog::on_deleteButton_clicked()
 {
-    ui->msgLabel->clear();
-    QString filename {ui->loginBox->currentText() + ACCOUNT_EXT};
+    ui->statusBar->clearMessage();
+    QString filename { currentAccountFile() };
 
     QFile f {filename};
     if (!f.open(QIODevice::ReadOnly)) {
-        ui->msgLabel->setText(tr("Account error"));
+        ui->statusBar->showMessage(tr("Account error"));
         return;
     }
 
@@ -99,7 +116,7 @@ void LoginDialog::on_deleteButton_clicked()
 
     PassBook passBook {filename, master};
     if(passBook.verify() < 0) {
-        ui->msgLabel->setText(tr("Wrong password"));
+        ui->statusBar->showMessage(tr("Wrong password"));
         return;
     }
 
@@ -111,10 +128,10 @@ void LoginDialog::on_deleteButton_clicked()
 
 void LoginDialog::deleteAccount()
 {
-    QString filename {ui->loginBox->currentText() + ACCOUNT_EXT};
+    QString filename { currentAccountFile() };
     QFile{filename}.remove();
 
-    ui->msgLabel->setText(tr("Account \"%1\" deleted").arg(ui->loginBox->currentText()));
+    ui->statusBar->showMessage(tr("Account \'%1\' deleted").arg(ui->loginBox->currentText()));
     ui->loginBox->removeItem(ui->loginBox->currentIndex());
     ui->passwordLine->clear();
 
@@ -143,7 +160,7 @@ void LoginDialog::createAccount(const QString &log, QString &key)
         hs = door.getHash();
     }
 
-    QString accountFile {log + ACCOUNT_EXT};
+    QString accountFile { QString{"%1/%2%3"}.arg(appSettings.accountsPath, log, ACCOUNT_EXT) };
     QFile f {accountFile};
     f.open(QIODevice::WriteOnly);
     f.write(as<char*>(hs.hash), gost::SIZE_OF_HASH);
@@ -151,8 +168,22 @@ void LoginDialog::createAccount(const QString &log, QString &key)
     f.close();
 
     PassBook* passBook { new PassBook{accountFile, master} };
-    PassBookForm *passBookForm { new PassBookForm {passBook, ui->loginBox->currentText()} };
+    PassBookForm *passBookForm { new PassBookForm {passBook} };
     passBookForm->show();
 
     close();
+}
+
+void LoginDialog::on_actionAbout_triggered()
+{
+    QString v = appSettings.version.toString();
+    callInfoDialog(tr("Pass Book version %1").arg(v), this);
+}
+
+void LoginDialog::on_actionSettings_triggered()
+{
+    SettingsDialog *d { new SettingsDialog {this} };
+    connect(d, &SettingsDialog::languageChanged, [this](){ ui->retranslateUi(this); });
+    connect(d, &SettingsDialog::accountsPathChanged, this, &LoginDialog::loadAccounts);
+    d->show();
 }

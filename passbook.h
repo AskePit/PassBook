@@ -23,6 +23,8 @@ enum_class(Column) {
 } enum_end;
 
 class PassBook : public QAbstractTableModel {
+    Q_OBJECT
+
 public:
     PassBook(const QString &fileName, const Master &master);
     int verify(); // returns sizeOfFile OR -1 in case of failure
