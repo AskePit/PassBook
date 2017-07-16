@@ -57,7 +57,7 @@ void Master::init()
     int size { m_data.size() };
     m_data.resize(gost::SIZE_OF_KEY);
 
-    if(size < gost::SIZE_OF_KEY) {
+    if(static_cast<size_t>(size) < gost::SIZE_OF_KEY) {
         wipememory(m_data.data() + size, gost::SIZE_OF_KEY - size);
     }
 
@@ -124,7 +124,7 @@ HashAndSalt MasterDoor::getHash()
     SecureBytes salt(gost::SIZE_OF_SALT);
     memrandomset(salt);
 
-    SecureBytes hash { getHash(salt) };
+    SecureBytes hash (getHash(salt));
 
     return {hash, salt};
 }

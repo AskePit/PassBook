@@ -6,8 +6,6 @@ AccountCreateDialog::AccountCreateDialog(QWidget *parent)
     , ui(new Ui::AccountCreateDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(Qt::WindowStaysOnTopHint | Qt::Dialog);
-    setAttribute(Qt::WA_DeleteOnClose);
 }
 
 AccountCreateDialog::~AccountCreateDialog()
@@ -17,7 +15,7 @@ AccountCreateDialog::~AccountCreateDialog()
 
 void AccountCreateDialog::on_buttonBox_rejected()
 {
-    close();
+    QDialog::reject();
 }
 
 void AccountCreateDialog::on_buttonBox_accepted()
@@ -27,7 +25,16 @@ void AccountCreateDialog::on_buttonBox_accepted()
     else if (ui->keyLine_2->text().isEmpty())               ui->msg_label->setText(tr("Confirm password"));
     else if (ui->keyLine->text() != ui->keyLine_2->text())  ui->msg_label->setText(tr("Passwords do not match"));
     else {
-        emit sendAccountCredentials(ui->loginLine->text(), ui->keyLine->text());
-        close();
+        QDialog::accept();
     }
+}
+
+QString AccountCreateDialog::login()
+{
+    return ui->loginLine->text();
+}
+
+QString AccountCreateDialog::password()
+{
+    return ui->keyLine->text();
 }

@@ -42,7 +42,7 @@ int PassBook::verify()
     in.close();
 
     MasterDoor door {m_master};
-    SecureBytes realHash {door.getHash(fileSalt)};
+    SecureBytes realHash (door.getHash(fileSalt));
 
     return fileHash == realHash ? static_cast<int>(sizeofFile - SIZE_OF_HASH - SIZE_OF_SALT)
                                 : -1;

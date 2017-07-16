@@ -101,7 +101,6 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     ui->passTable->setColumnWidth(Column::Name, 100);
     ui->passTable->setColumnWidth(Column::Url, 150);
     ui->passTable->setColumnWidth(Column::Login, 100);
-    ui->passTable->setColumnWidth(Column::Password, 300);
     ui->passTable->horizontalHeader()->setStretchLastSection(true);
 
     connect(ui->passTable, &QTableView::doubleClicked, this, &PassBookForm::doubleClickReact);
@@ -139,24 +138,6 @@ PassBookForm::~PassBookForm()
     clipboard->clear();
     delete m_passBook;
     delete ui;
-}
-
-static qint32 hashPixmap(const QPixmap& pix)
-{
-    QImage image { pix.toImage() };
-    qint32 hash {0};
-
-    for(int y = 0; y < image.height(); ++y) {
-        for(int x = 0; x < image.width(); ++x) {
-            QRgb pixel { image.pixel(x,y) };
-
-            hash += pixel;
-            hash += (hash << 10);
-            hash ^= (hash >> 6);
-        }
-    }
-
-    return hash;
 }
 
 void PassBookForm::on_addButton_clicked()

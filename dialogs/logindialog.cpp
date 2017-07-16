@@ -2,7 +2,6 @@
 #include "ui_logindialog.h"
 
 #include "passbookform.h"
-#include "accountdeletedialog.h"
 #include "accountcreatedialog.h"
 #include "settingsdialog.h"
 
@@ -113,6 +112,7 @@ void LoginDialog::on_deleteButton_clicked()
         ui->statusBar->showMessage(tr("Account error"));
         return;
     }
+    f.close();
 
     Master master {std::move(ui->passwordLine->text())};
     ui->passwordLine->clear();
@@ -123,16 +123,20 @@ void LoginDialog::on_deleteButton_clicked()
         return;
     }
 
-    AccountDeleteDialog *d { new AccountDeleteDialog {ui->loginBox->currentText(), this} };
-    d->show();
+    int res = callQuestionDialog(
+                  tr("Are you sure you want to delete \'%1\' account?")
+                    .arg(ui->loginBox->currentText()),
+                  this
+    );
 
-    connect(d, &AccountDeleteDialog::accept_deleting, this, &LoginDialog::deleteAccount);
+    if(res == QMessageBox::Ok) {
+        deleteAccount();
+    }
 }
 
 void LoginDialog::deleteAccount()
 {
-    QString filename { currentAccountFile() };
-    QFile{filename}.remove();
+    QFile::remove(currentAccountFile());
 
     ui->statusBar->showMessage(tr("Account \'%1\' deleted").arg(ui->loginBox->currentText()));
     ui->loginBox->removeItem(ui->loginBox->currentIndex());
@@ -147,13 +151,15 @@ void LoginDialog::deleteAccount()
 
 void LoginDialog::on_createButton_clicked()
 {
-    AccountCreateDialog *d { new AccountCreateDialog {this} };
-    d->show();
+    AccountCreateDialog d { this };
+    int res = d.exec();
 
-    connect(d, &AccountCreateDialog::sendAccountCredentials, this, &LoginDialog::createAccount);
+    if(res == QDialog::Accepted) {
+        createAccount(d.login(), d.password());
+    }
 }
 
-void LoginDialog::createAccount(const QString &log, QString &key)
+void LoginDialog::createAccount(const QString &log, QString &&key)
 {
     Master master {std::move(key)};
 

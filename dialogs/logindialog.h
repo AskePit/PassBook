@@ -27,7 +27,6 @@ private slots:
     void on_actionAbout_triggered();
     void on_actionSettings_triggered();
 
-    void createAccount(const QString &log, QString &key);
     void deleteAccount();
 
 protected:
@@ -36,6 +35,7 @@ protected:
 private:
     Ui::LoginDialog *ui;
 
+    void createAccount(const QString &log, QString &&key);
     QString currentAccountFile(QString newLogin = QString());
 };
 

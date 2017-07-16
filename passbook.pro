@@ -12,7 +12,6 @@ SOURCES += main.cpp\
     utils.cpp \
     securetypes.cpp \
     dialogs/accountcreatedialog.cpp \
-    dialogs/accountdeletedialog.cpp \
     dialogs/logindialog.cpp \
     dialogs/settingsdialog.cpp \
     settings.cpp
@@ -27,7 +26,6 @@ HEADERS  += \
     utils.h \
     securetypes.h \
     dialogs/accountcreatedialog.h \
-    dialogs/accountdeletedialog.h \
     dialogs/logindialog.h \
     dialogs/settingsdialog.h \
     settings.h
@@ -36,7 +34,6 @@ FORMS    += \
     passbookform.ui \
     dialogs/keygendialog.ui \
     dialogs/accountcreatedialog.ui \
-    dialogs/accountdeletedialog.ui \
     dialogs/logindialog.ui \
     dialogs/settingsdialog.ui
 
@@ -48,3 +45,5 @@ TRANSLATIONS += \
     resources/i18n/ru.ts
 
 DEFINES *= QT_USE_QSTRINGBUILDER
+
+CONFIG += c++14

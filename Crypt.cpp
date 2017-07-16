@@ -252,7 +252,7 @@ void Crypter::cryptData(byte *dst, const byte *src, size_t size, const byte *pas
     u32 &A {AB[0]};
     u32 &B {AB[1]};
 
-    register u32 N1, N2, N3, N4;
+    u32 N1, N2, N3, N4;
 
 	N3 = Sync[0];
 	N4 = Sync[1];

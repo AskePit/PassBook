@@ -15,8 +15,8 @@ public:
     explicit AccountCreateDialog(QWidget *parent = 0);
     ~AccountCreateDialog();
 
-signals:
-    void sendAccountCredentials(const QString &log, QString &key);
+    QString login();
+    QString password();
 
 private slots:
     void on_buttonBox_rejected();
