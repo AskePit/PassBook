@@ -19,7 +19,8 @@ public:
     bool eventFilter(QObject *watched, QEvent *event);
 
 signals:
-    void tableHover(QWidget *watched, QMouseEvent *event);
+    void tableHover(QMouseEvent *event);
+    void tableClick(QMouseEvent *event);
 };
 
 class PassBookDelegate : public QStyledItemDelegate
@@ -37,11 +38,11 @@ public:
     bool isInEditMode() { return m_inEditMode; }
 
 public slots:
-    void setHoveredPassword(int i) { m_hoveredPassword = i; }
+    void setHoveredPassword(QModelIndex i) { m_hoveredPassword = i; }
     void informDoubleClicked() { m_doubleClicked = true; }
 
 private:
-    int m_hoveredPassword;
+    QModelIndex m_hoveredPassword;
     mutable bool m_inEditMode;
     mutable bool m_doubleClicked;
 };
@@ -68,7 +69,9 @@ private slots:
 
     void save();
     void doubleClickReact(const QModelIndex& idx);
+    void clickReact(const QModelIndex& idx);
     void callPasswordContextMenu(const QPoint &pos);
+    void deselectAll();
 
 private:
     Ui::PassBookForm *ui;

@@ -2,7 +2,6 @@
 #define PASSWORDPIXMAP_H
 
 #include <QMetaType>
-#include <QDataStream>
 #include "platform.h"
 
 class SecureString : public QString
@@ -61,12 +60,14 @@ private:
 
 class QPainter;
 class QStyleOptionViewItem;
+class QDataStream;
 
 class Password
 {
 public:
     Password() = default;
     Password(QString &&pass, const Master &master);
+    bool operator ==(const Password &);
 
     void load(QString &&pass, const Master &master);
     void reload(QString &&pass);
@@ -76,25 +77,8 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionViewItem &option, bool show);
 
-    friend QDataStream &operator << (QDataStream &arch, const Password &object)
-    {
-        arch << object.m_loaded;
-        arch << object.m_cryptedPass;
-        arch << reinterpret_cast<ptrdiff_t>(object.m_master);
-        return arch;
-    }
-
-    friend QDataStream &operator >> (QDataStream &arch, Password &object)
-    {
-        ptrdiff_t masterAddr;
-
-        arch >> object.m_loaded;
-        arch >> object.m_cryptedPass;
-        arch >> masterAddr;
-
-        object.m_master = reinterpret_cast<const Master*>(masterAddr);
-        return arch;
-    }
+    friend QDataStream &operator << (QDataStream &arch, const Password &object);
+    friend QDataStream &operator >> (QDataStream &arch, Password &object);
 
 private:
     bool m_loaded = false;

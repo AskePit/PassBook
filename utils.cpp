@@ -3,7 +3,6 @@
 #include "securetypes.h"
 
 #include <ctime>
-#include <cstdlib>
 
 #include <QDesktopWidget>
 #include <QFileInfo>

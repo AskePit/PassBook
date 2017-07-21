@@ -1,5 +1,5 @@
 /*
- * Crypt.cpp
+ * crypt.cpp
  *
  *  Created on: 27.07.2015
  *      Author: nikolay shalakin
@@ -8,10 +8,9 @@
  *
  */
 
-#include "Crypt.h"
+#include "crypt.h"
 #include "utils.h"
 #include <fstream>
-#include <cstring>
 
 namespace gost {
 

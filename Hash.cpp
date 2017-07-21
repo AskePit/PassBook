@@ -1,5 +1,5 @@
 /*
- * Hash.cpp
+ * hash.cpp
  *
  *  Created on: 27.07.2015
  *      Author: nikolay shalakin
@@ -8,11 +8,8 @@
  *
  */
 
-#include "Hash.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "hash.h"
 #include <memory.h>
-#include <math.h>
 
 namespace gost
 {

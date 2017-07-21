@@ -6,6 +6,7 @@
 #include <functional>
 #include <QPainter>
 #include <QStyleOptionViewItem>
+#include <QDataStream>
 
 SecureString::SecureString(QString &&str) : QString(str) {}
 
@@ -135,6 +136,11 @@ Password::Password(QString &&pass, const Master &master)
     load(std::move(pass), master);
 }
 
+bool Password::operator ==(const Password &p)
+{
+    return m_loaded == p.m_loaded && m_cryptedPass == p.m_cryptedPass && m_master == p.m_master;
+}
+
 void Password::load(QString &&pass, const Master &master)
 {
     SecureBytes bytes(std::move(pass));
@@ -209,4 +215,24 @@ void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool
         p.fillRect(0, 0, rect.width(), rect.height(), Qt::Dense4Pattern);
         painter->drawPixmap(option.rect.x(), rect.y(), pixmap);
     }
+}
+
+QDataStream &operator << (QDataStream &arch, const Password &object)
+{
+    arch << object.m_loaded;
+    arch << object.m_cryptedPass;
+    arch << reinterpret_cast<ptrdiff_t>(object.m_master);
+    return arch;
+}
+
+QDataStream &operator >> (QDataStream &arch, Password &object)
+{
+    ptrdiff_t masterAddr;
+
+    arch >> object.m_loaded;
+    arch >> object.m_cryptedPass;
+    arch >> masterAddr;
+
+    object.m_master = reinterpret_cast<const Master*>(masterAddr);
+    return arch;
 }

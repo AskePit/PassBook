@@ -16,7 +16,10 @@ bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
     if (watched) {
         if (event->type() == QEvent::MouseMove) {
             QMouseEvent *mouseEvent { static_cast<QMouseEvent *>(event) };
-            emit tableHover(qobject_cast<QWidget *>(watched), mouseEvent);
+            emit tableHover(mouseEvent);
+        } else if(event->type() == QEvent::MouseButtonPress) {
+            QMouseEvent *mouseEvent { static_cast<QMouseEvent *>(event) };
+            emit tableClick(mouseEvent);
         }
     }
 
@@ -25,7 +28,7 @@ bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
 
 PassBookDelegate::PassBookDelegate(QWidget *parent)
     : QStyledItemDelegate(parent)
-    , m_hoveredPassword(-1)
+    , m_hoveredPassword(QModelIndex())
     , m_inEditMode(false)
     , m_doubleClicked(false)
 {}
@@ -33,7 +36,7 @@ PassBookDelegate::PassBookDelegate(QWidget *parent)
 void PassBookDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     Password password { qvariant_cast<Password>(index.data()) };
-    password.paint(painter, option, index.row() == m_hoveredPassword);
+    password.paint(painter, option, index == m_hoveredPassword);
 }
 
 QWidget *PassBookDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -92,44 +95,55 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
 
     ui->passTable->viewport()->setMouseTracking(true);
     ui->passTable->viewport()->installEventFilter(filter);
-    ui->passTable->horizontalHeader()->viewport()->setMouseTracking(true);
-    ui->passTable->horizontalHeader()->viewport()->installEventFilter(filter);
 
     ui->passTable->setModel(passBook);
+    connect(passBook, &PassBook::modelReset, ui->passTable, &QTreeView::expandAll);
     ui->passTable->setItemDelegateForColumn(Column::Password, m_passBookDelegate);
-    ui->passTable->setColumnWidth(Column::Id, 35);
-    ui->passTable->setColumnWidth(Column::Name, 100);
+    ui->passTable->setColumnWidth(Column::Name, 125);
     ui->passTable->setColumnWidth(Column::Url, 150);
     ui->passTable->setColumnWidth(Column::Login, 100);
-    ui->passTable->horizontalHeader()->setStretchLastSection(true);
 
-    connect(ui->passTable, &QTableView::doubleClicked, this, &PassBookForm::doubleClickReact);
-    connect(ui->passTable, &QTableView::customContextMenuRequested, this, &PassBookForm::callPasswordContextMenu);
+    connect(ui->passTable, &QTreeView::doubleClicked, this, &PassBookForm::doubleClickReact);
+    connect(ui->passTable, &QTreeView::clicked, this, &PassBookForm::clickReact);
+    connect(ui->passTable, &QTreeView::customContextMenuRequested, this, &PassBookForm::callPasswordContextMenu);
 
     ui->passTable->setFocus();
 
-    connect(filter, &TableEventFilter::tableHover, [=](QWidget *watched, QMouseEvent *event) {        
+    connect(filter, &TableEventFilter::tableHover, [=](QMouseEvent *event) {
         int c { ui->passTable->columnAt(event->x()) };
-        bool isTable { watched == ui->passTable->viewport() };
         bool isPassword { c == Column::Password };
 
         if(m_passBookDelegate->isInEditMode()) {
             return;
         }
 
-        if(!isTable || !isPassword) {
-            m_passBookDelegate->setHoveredPassword(-1);
+        if(!isPassword) {
+            m_passBookDelegate->setHoveredPassword(QModelIndex());
         } else {
-            int r = ui->passTable->rowAt(event->y());
-            m_passBookDelegate->setHoveredPassword(r);
+            QModelIndex i = ui->passTable->indexAt(event->pos());
+            m_passBookDelegate->setHoveredPassword(i);
         }
 
         // trigger passwords to be repainted in case of comming from/to horizontal header
         emit passBook->dataChanged(passBook->index(0, Column::Password), passBook->index(passBook->rowCount()-1, Column::Password), {Qt::DisplayRole});
     });
 
+    connect(filter, &TableEventFilter::tableClick, [=](QMouseEvent *event) {
+        if(m_passBookDelegate->isInEditMode()) {
+            return;
+        }
+
+        QModelIndex i { ui->passTable->indexAt(event->pos()) };
+        ui->deleteButton->setEnabled(i.isValid());
+        if(!i.isValid()) {
+            deselectAll();
+        }
+    });
+
     ui->passTable->viewport()->setAcceptDrops(true);
     restoreGeometry(iniSettings.value("MainFormGeometry").toByteArray());
+    ui->passTable->expandAll();
+    deselectAll();
 }
 
 PassBookForm::~PassBookForm()
@@ -142,13 +156,21 @@ PassBookForm::~PassBookForm()
 
 void PassBookForm::on_addButton_clicked()
 {
-    m_passBook->insertRow(m_passBook->rowCount());
+    QModelIndex index { ui->passTable->currentIndex() };
+
+    if(index.isValid()) {
+        int group = noteid{index.internalId()}.groupIndex();
+        QModelIndex groupIndex = m_passBook->index(group, 0);
+        m_passBook->insertRow(m_passBook->rowCount(groupIndex), groupIndex);
+    } else {
+        m_passBook->insertRow(m_passBook->rowCount());
+    }
 }
 
 void PassBookForm::on_deleteButton_clicked()
 {
-    int row { ui->passTable->currentIndex().row() };
-    m_passBook->removeRow(row);
+    QModelIndex index { ui->passTable->currentIndex() };
+    m_passBook->removeRow(index.row(), index.parent());
 }
 
 void PassBookForm::save()
@@ -164,11 +186,20 @@ void PassBookForm::on_backButton_clicked()
 
 void PassBookForm::doubleClickReact(const QModelIndex& idx)
 {
-    if(idx.column() == Column::Password) {
+    if(idx.parent().isValid() && idx.column() == Column::Password) {
         m_passBookDelegate->informDoubleClicked();
         QClipboard *clipboard { QApplication::clipboard() };
-        SecureString &&pass { m_passBook->getPassword(idx.row()) };
+
+        noteid id {idx.internalId()};
+        SecureString &&pass { m_passBook->getPassword(id.groupIndex(), idx.row()) };
         clipboard->setText( QString{std::move(pass)} );
+    }
+}
+
+void PassBookForm::clickReact(const QModelIndex& idx)
+{
+    if(!idx.isValid()) {
+        ui->passTable->clearSelection();
     }
 }
 
@@ -190,6 +221,14 @@ void PassBookForm::callPasswordContextMenu(const QPoint &point)
     menu.addAction(ui->actionInsertBelow);
 
     menu.exec(globalPos);
+}
+
+void PassBookForm::deselectAll()
+{
+    ui->passTable->clearSelection();
+    const QModelIndex index;
+    ui->passTable->selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
+    ui->deleteButton->setDisabled(true);
 }
 
 void PassBookForm::closeEvent(QCloseEvent *event)
@@ -225,16 +264,19 @@ void PassBookForm::on_actionEditPassword_triggered()
 
 void PassBookForm::on_actionGeneratePassword_triggered()
 {
-    KeyGenDialog *d { new KeyGenDialog{*m_passBook, ui->passTable->currentIndex().row()} };
+    QModelIndex index { ui->passTable->currentIndex() };
+    KeyGenDialog *d { new KeyGenDialog{*m_passBook, index.parent().row(), index.row()} };
     d->show();
 }
 
 void PassBookForm::on_actionInsertAbove_triggered()
 {
-    m_passBook->insertRow(ui->passTable->currentIndex().row());
+    QModelIndex index { ui->passTable->currentIndex() };
+    m_passBook->insertRow(index.row(), index.parent());
 }
 
 void PassBookForm::on_actionInsertBelow_triggered()
 {
-    m_passBook->insertRow(ui->passTable->currentIndex().row()+1);
+    QModelIndex index { ui->passTable->currentIndex() };
+    m_passBook->insertRow(index.row()+1, index.parent());
 }

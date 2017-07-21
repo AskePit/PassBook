@@ -3,33 +3,38 @@
 
 #include "passbook.h"
 #include "utils.h"
-#include <QAbstractButton>
 
-KeyGenDialog::KeyGenDialog(PassBook &passBook, int row, QWidget *parent)
+KeyGenDialog::KeyGenDialog(PassBook &passBook, int group, int row, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::KeyGenDialog)
+    , m_passBook(passBook)
+    , m_group(group)
+    , m_row(row)
 {
     ui->setupUi(this);
-    setAttribute(Qt::WA_DeleteOnClose);
-    setWindowFlags(Qt::WindowStaysOnTopHint | Qt::WindowCloseButtonHint);
 
     for(auto t : PasswordType::enumerate()) {
         ui->comboBox->addItem(PasswordType::toString(t));
     }
 
     ui->comboBox->setCurrentIndex(PasswordType::Standard);
-
-    connect(ui->buttonBox, &QDialogButtonBox::clicked, [&, row] (QAbstractButton *button) {
-        bool ok = (QPushButton*)button == ui->buttonBox->button(QDialogButtonBox::Ok);
-        if(ok) {
-            QString &&p = passGenerate(ui->spinBox->value(), static_cast<PasswordType::type>(ui->comboBox->currentIndex()));
-            passBook.setPassword(row, std::move(p));
-        }
-        close();
-    });
 }
 
 KeyGenDialog::~KeyGenDialog()
 {
     delete ui;
+}
+
+void KeyGenDialog::on_buttonBox_rejected()
+{
+    QDialog::reject();
+}
+
+void KeyGenDialog::on_buttonBox_accepted()
+{
+    PasswordType::type type { static_cast<PasswordType::type>(ui->comboBox->currentIndex()) };
+    QString p { passGenerate(ui->spinBox->value(), type) };
+    m_passBook.setPassword(m_group, m_row, std::move(p));
+
+    QDialog::accept();
 }
