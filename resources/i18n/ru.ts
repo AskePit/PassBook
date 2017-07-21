@@ -33,17 +33,6 @@
     </message>
 </context>
 <context>
-    <name>AccountDeleteDialog</name>
-    <message>
-        <source>Delete Account</source>
-        <translation>Удалить аккаунт</translation>
-    </message>
-    <message>
-        <source>Are you sure you want to delete &apos;%1&apos; account?</source>
-        <translation>Вы уверены, что вы хотите удалить &apos;%1&apos; аккаунт?</translation>
-    </message>
-</context>
-<context>
     <name>KeyGenDialog</name>
     <message>
         <source>Password generation</source>
@@ -124,13 +113,13 @@
         <source>Pass Book version %1</source>
         <translation>Парольная книжка версия %1</translation>
     </message>
+    <message>
+        <source>Are you sure you want to delete &apos;%1&apos; account?</source>
+        <translation>Вы уверены, что вы хотите удалить &apos;%1&apos; аккаунт?</translation>
+    </message>
 </context>
 <context>
     <name>PassBook</name>
-    <message>
-        <source>№</source>
-        <translation></translation>
-    </message>
     <message>
         <source>Resource</source>
         <translation>Ресурс</translation>
@@ -146,6 +135,14 @@
     <message>
         <source>Password</source>
         <translation>Пароль</translation>
+    </message>
+    <message>
+        <source>New Group</source>
+        <translation>Новая группа</translation>
+    </message>
+    <message>
+        <source>New Password</source>
+        <translation>Новый пароль</translation>
     </message>
 </context>
 <context>
@@ -210,14 +207,6 @@
         <translation>Русский</translation>
     </message>
     <message>
-        <source>en</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>ru</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Letters</source>
         <translation>Буквы</translation>
     </message>
@@ -232,6 +221,10 @@
     <message>
         <source>Advanced</source>
         <translation>Расширенный</translation>
+    </message>
+    <message>
+        <source>Common</source>
+        <translation>Общие</translation>
     </message>
 </context>
 <context>

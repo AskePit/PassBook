@@ -33,17 +33,6 @@
     </message>
 </context>
 <context>
-    <name>AccountDeleteDialog</name>
-    <message>
-        <source>Delete Account</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Are you sure you want to delete &apos;%1&apos; account?</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
     <name>KeyGenDialog</name>
     <message>
         <source>Password generation</source>
@@ -124,13 +113,13 @@
         <source>Pass Book version %1</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Are you sure you want to delete &apos;%1&apos; account?</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>PassBook</name>
-    <message>
-        <source>№</source>
-        <translation></translation>
-    </message>
     <message>
         <source>Resource</source>
         <translation></translation>
@@ -145,6 +134,14 @@
     </message>
     <message>
         <source>Password</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>New Group</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>New Password</source>
         <translation></translation>
     </message>
 </context>
@@ -210,14 +207,6 @@
         <translation></translation>
     </message>
     <message>
-        <source>en</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>ru</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Letters</source>
         <translation></translation>
     </message>
@@ -231,6 +220,10 @@
     </message>
     <message>
         <source>Advanced</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Common</source>
         <translation></translation>
     </message>
 </context>
