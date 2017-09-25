@@ -70,7 +70,8 @@ private slots:
     void save();
     void doubleClickReact(const QModelIndex& idx);
     void clickReact(const QModelIndex& idx);
-    void callPasswordContextMenu(const QPoint &pos);
+    void callTableContextMenu(const QPoint &pos);
+    void callGroupsContextMenu(const QPoint &pos);
     void deselectAll();
 
 private:

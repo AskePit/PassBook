@@ -93,19 +93,30 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
 
     TableEventFilter *filter { new TableEventFilter };
 
+    ui->groupList->viewport()->setMouseTracking(true);
     ui->passTable->viewport()->setMouseTracking(true);
     ui->passTable->viewport()->installEventFilter(filter);
 
+    ui->groupList->setModel(passBook);
     ui->passTable->setModel(passBook);
-    connect(passBook, &PassBook::modelReset, ui->passTable, &QTreeView::expandAll);
+
+    connect(ui->groupList, &QListView::clicked, [this](const QModelIndex &index){
+        ui->passTable->setRootIndex(index);
+        clickReact(index);
+    });
+
+    ui->groupList->setCurrentIndex(passBook->index(0, 0));
+    emit ui->groupList->clicked(passBook->index(0, 0));
+
     ui->passTable->setItemDelegateForColumn(Column::Password, m_passBookDelegate);
     ui->passTable->setColumnWidth(Column::Name, 125);
     ui->passTable->setColumnWidth(Column::Url, 150);
     ui->passTable->setColumnWidth(Column::Login, 100);
 
-    connect(ui->passTable, &QTreeView::doubleClicked, this, &PassBookForm::doubleClickReact);
-    connect(ui->passTable, &QTreeView::clicked, this, &PassBookForm::clickReact);
-    connect(ui->passTable, &QTreeView::customContextMenuRequested, this, &PassBookForm::callPasswordContextMenu);
+    connect(ui->passTable, &QTableView::doubleClicked, this, &PassBookForm::doubleClickReact);
+    connect(ui->passTable, &QTableView::clicked, this, &PassBookForm::clickReact);
+    connect(ui->groupList, &QListView::customContextMenuRequested, this, &PassBookForm::callTableContextMenu);
+    connect(ui->passTable, &QTableView::customContextMenuRequested, this, &PassBookForm::callTableContextMenu);
 
     ui->passTable->setFocus();
 
@@ -140,9 +151,10 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
         }
     });
 
+    ui->groupList->viewport()->setAcceptDrops(true);
     ui->passTable->viewport()->setAcceptDrops(true);
     restoreGeometry(iniSettings.value("MainFormGeometry").toByteArray());
-    ui->passTable->expandAll();
+
     deselectAll();
 }
 
@@ -156,20 +168,17 @@ PassBookForm::~PassBookForm()
 
 void PassBookForm::on_addButton_clicked()
 {
-    QModelIndex index { ui->passTable->currentIndex() };
-
-    if(index.isValid()) {
-        int group = noteid{index.internalId()}.groupIndex();
-        QModelIndex groupIndex = m_passBook->index(group, 0);
-        m_passBook->insertRow(m_passBook->rowCount(groupIndex), groupIndex);
-    } else {
+    if(ui->groupList->hasFocus()) {
         m_passBook->insertRow(m_passBook->rowCount());
+    } else {
+        auto groupIndex = ui->groupList->currentIndex();
+        m_passBook->insertRow(m_passBook->rowCount(groupIndex), groupIndex);
     }
 }
 
 void PassBookForm::on_deleteButton_clicked()
 {
-    QModelIndex index { ui->passTable->currentIndex() };
+    QModelIndex index { ui->groupList->hasFocus() ? ui->groupList->currentIndex() : ui->passTable->currentIndex() };
     m_passBook->removeRow(index.row(), index.parent());
 }
 
@@ -203,7 +212,7 @@ void PassBookForm::clickReact(const QModelIndex& idx)
     }
 }
 
-void PassBookForm::callPasswordContextMenu(const QPoint &point)
+void PassBookForm::callTableContextMenu(const QPoint &point)
 {
     QModelIndex index { ui->passTable->indexAt(point) };
     if(!index.isValid()) {
@@ -221,6 +230,26 @@ void PassBookForm::callPasswordContextMenu(const QPoint &point)
     menu.addAction(ui->actionInsertBelow);
 
     menu.exec(globalPos);
+}
+
+void PassBookForm::callGroupsContextMenu(const QPoint &pos)
+{
+    /*QModelIndex index { ui->passTable->indexAt(point) };
+    if(!index.isValid()) {
+        return;
+    }
+
+    QPoint globalPos { ui->passTable->mapToGlobal(point) };
+    QMenu menu(ui->passTable);
+    if(index.column() == Column::Password) {
+        menu.addAction(ui->actionEditPassword);
+        menu.addAction(ui->actionGeneratePassword);
+        menu.addSeparator();
+    }
+    menu.addAction(ui->actionInsertAbove);
+    menu.addAction(ui->actionInsertBelow);
+
+    menu.exec(globalPos);*/
 }
 
 void PassBookForm::deselectAll()
