@@ -191,7 +191,7 @@ void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool
     if(show) {
         QString pass { get() };
 
-        QFont font {"Consolas", 9};
+        QFont font {QStringLiteral("Consolas"), 9};
         QFontMetrics fm {font};
         const int margin {4};
         int w { fm.width(pass) + margin };

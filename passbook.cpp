@@ -124,11 +124,11 @@ bool PassBook::load()
 
 void PassBook::backupFile()
 {
-    QString backupDir { appSettings.accountsPath.isEmpty() ? "backup" : QString{appSettings.accountsPath + "/backup"}};
+    QString backupDir { appSettings.accountsPath.isEmpty() ? QStringLiteral("backup") : QString{appSettings.accountsPath + QStringLiteral("/backup")}};
     QDir{}.mkpath(backupDir);
     QString baseName { QFileInfo{m_fileName}.baseName() };
-    QString backup1Name { QString{"%1/%2.backup.1"}.arg(backupDir, baseName) };
-    QString backup2Name { QString{"%1/%2.backup.2"}.arg(backupDir, baseName) };
+    QString backup1Name { QStringLiteral("%1/%2.backup.1").arg(backupDir, baseName) };
+    QString backup2Name { QStringLiteral("%1/%2.backup.2").arg(backupDir, baseName) };
     copyFileForced(backup1Name, backup2Name);
     copyFileForced(m_fileName, backup1Name);
 }
@@ -402,7 +402,7 @@ bool PassBook::insertRows(int row, int count, const QModelIndex &parent)
         for(int i = 0; i<count; ++i) {
             Note &&note {Note{}};
             note.source = tr("New Password");
-            note.password.load("", m_master);
+            note.password.load(QStringLiteral(""), m_master);
             noteList.insert(row, std::move(note));
         }
     }

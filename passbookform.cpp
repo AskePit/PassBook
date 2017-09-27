@@ -153,7 +153,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
 
     ui->groupList->viewport()->setAcceptDrops(true);
     ui->passTable->viewport()->setAcceptDrops(true);
-    restoreGeometry(iniSettings.value("MainFormGeometry").toByteArray());
+    restoreGeometry(iniSettings.value(QStringLiteral("MainFormGeometry")).toByteArray());
 
     deselectAll();
 }
@@ -266,7 +266,7 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     QClipboard *clipboard { QApplication::clipboard() };
     clipboard->clear();
 
-    iniSettings.setValue("MainFormGeometry", saveGeometry());
+    iniSettings.setValue(QStringLiteral("MainFormGeometry"), saveGeometry());
 
     if(m_passBook->wasChanged()) {
         int ret { callQuestionDialog(tr("Do you want to save changes?"), this) };

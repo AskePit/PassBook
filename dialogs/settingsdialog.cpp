@@ -49,7 +49,7 @@ SettingsDialog::~SettingsDialog()
 
 void SettingsDialog::setDefaultPath()
 {
-    QFileInfo info {""};
+    QFileInfo info {QStringLiteral("")};
     ui->pathEdit->setText(info.absoluteFilePath());
 }
 
@@ -65,7 +65,7 @@ void SettingsDialog::on_buttonBox_accepted()
     }
 
     bool defaultPath = ui->defaultButton->isChecked();
-    QString accountsPath = defaultPath ? "" : ui->pathEdit->text();
+    QString accountsPath = defaultPath ? QStringLiteral("") : ui->pathEdit->text();
     pathChanged = accountsPath != appSettings.accountsPath;
     if(pathChanged) {
         appSettings.accountsPath = accountsPath;

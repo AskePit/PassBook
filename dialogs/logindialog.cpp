@@ -29,7 +29,7 @@ LoginDialog::LoginDialog(QWidget *parent)
     connect(ui->passwordLine, &QLineEdit::returnPressed, ui->enterButton, &QPushButton::click);
 
     ui->passwordLine->setFocus();
-    restoreGeometry(iniSettings.value("LoginDialogGeometry").toByteArray());
+    restoreGeometry(iniSettings.value(QStringLiteral("LoginDialogGeometry")).toByteArray());
 }
 
 LoginDialog::~LoginDialog()
@@ -40,14 +40,14 @@ LoginDialog::~LoginDialog()
 void LoginDialog::closeEvent(QCloseEvent *e)
 {
     Q_UNUSED(e);
-    iniSettings.setValue("LoginDialogGeometry", saveGeometry());
-    iniSettings.setValue("LastAccount", ui->loginBox->currentText());
+    iniSettings.setValue(QStringLiteral("LoginDialogGeometry"), saveGeometry());
+    iniSettings.setValue(QStringLiteral("LastAccount"), ui->loginBox->currentText());
 }
 
 void LoginDialog::loadAccounts()
 {
     QString &accountsPath {appSettings.accountsPath};
-    QString filter(QString{"*%1"}.arg(ACCOUNT_EXT));
+    QString filter(QStringLiteral("*%1").arg(ACCOUNT_EXT));
     int filterLength {filter.length() - 1};
 
     QDir accountsDir {accountsPath, filter, QDir::Name, QDir::Files | QDir::Hidden | QDir::NoSymLinks};
@@ -65,14 +65,14 @@ void LoginDialog::loadAccounts()
     ui->passwordLine->setEnabled(accountsAvaliable);
     ui->enterButton->setEnabled(accountsAvaliable);
 
-    ui->loginBox->setCurrentText( iniSettings.value("LastAccount").toString() );
+    ui->loginBox->setCurrentText( iniSettings.value(QStringLiteral("LastAccount")).toString() );
 }
 
 QString LoginDialog::currentAccountFile(QString newLogin)
 {
     bool isDefault = appSettings.accountsPath.isEmpty();
     QString login { newLogin.isNull() ? ui->loginBox->currentText() : newLogin };
-    return QString{isDefault ? "%1%2%3": "%1/%2%3"}.arg(appSettings.accountsPath, login, ACCOUNT_EXT);
+    return QString(isDefault ? QStringLiteral("%1%2%3"): QStringLiteral("%1/%2%3")).arg(appSettings.accountsPath, login, ACCOUNT_EXT);
 }
 
 void LoginDialog::on_enterButton_clicked()

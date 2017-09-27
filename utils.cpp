@@ -61,9 +61,9 @@ QString passGenerate(int n, PasswordType::type type)
     srand((unsigned int)time(NULL));
 
     QString symbols { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" };
-    if(type > PasswordType::Letters) symbols += "0123456789";
-    if(type > PasswordType::LettersAndDigits) symbols += ".,/-_";
-    if(type > PasswordType::Standard) symbols += "!#$%&()*+[]\\^{|}";
+    if(type > PasswordType::Letters) symbols += QStringLiteral("0123456789");
+    if(type > PasswordType::LettersAndDigits) symbols += QStringLiteral(".,/-_");
+    if(type > PasswordType::Standard) symbols += QStringLiteral("!#$%&()*+[]\\^{|}");
 
     QString pass;
     for(int i = 0; i<n; ++i) {

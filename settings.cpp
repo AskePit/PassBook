@@ -27,14 +27,14 @@ Language::type Language::fromString(const QString &str)
 QString Language::i18nName(Language::type t) {
     switch(t) {
         default:
-        case English: return "en";
-        case Russian: return "ru";
+        case English: return QStringLiteral("en");
+        case Russian: return QStringLiteral("ru");
     }
 }
 
 Language::type Language::fromi18nName(const QString &str)
 {
-    if(str == "ru") {
+    if(str == QLatin1String("ru")) {
         return Russian;
     } else {
         return English;
@@ -50,7 +50,7 @@ Settings::Settings()
 {}
 
 Settings appSettings;
-QSettings iniSettings {"settings.ini", QSettings::IniFormat};
+QSettings iniSettings {QStringLiteral("settings.ini"), QSettings::IniFormat};
 
 static void changeLanguage()
 {
@@ -64,7 +64,7 @@ static void changeLanguage()
     }
 
     translator = new QTranslator();
-    if (translator->load(lang, ":/i18n")) {
+    if (translator->load(lang, QStringLiteral(":/i18n"))) {
         qApp->installTranslator(translator);
     }
 
@@ -73,21 +73,21 @@ static void changeLanguage()
         delete qtTranslator;
     }
     qtTranslator = new QTranslator();
-    if (qtTranslator->load("qtbase_" + lang, QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
+    if (qtTranslator->load(QStringLiteral("qtbase_") + lang, QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
         qApp->installTranslator(qtTranslator);
     }
 }
 
 void loadSettings()
 {
-    appSettings.language = Language::fromi18nName( iniSettings.value("Language", "en").toString() );
-    appSettings.accountsPath = iniSettings.value("AccountsPath", "").toString();
+    appSettings.language = Language::fromi18nName( iniSettings.value(QStringLiteral("Language"), QStringLiteral("en")).toString() );
+    appSettings.accountsPath = iniSettings.value(QStringLiteral("AccountsPath"), QStringLiteral("")).toString();
     changeLanguage();
 }
 
 void storeSettings()
 {
-    iniSettings.setValue("Language", Language::i18nName(appSettings.language));
-    iniSettings.setValue("AccountsPath", appSettings.accountsPath);
+    iniSettings.setValue(QStringLiteral("Language"), Language::i18nName(appSettings.language));
+    iniSettings.setValue(QStringLiteral("AccountsPath"), appSettings.accountsPath);
     changeLanguage();
 }
