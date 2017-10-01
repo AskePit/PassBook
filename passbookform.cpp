@@ -101,6 +101,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     ui->passTable->setModel(passBook);
 
     connect(ui->groupList, &QListView::clicked, [this](const QModelIndex &index){
+
         ui->passTable->setRootIndex(index);
         clickReact(index);
     });

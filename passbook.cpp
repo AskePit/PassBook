@@ -518,7 +518,8 @@ bool PassBook::dropMimeData(const QMimeData *data, Qt::DropAction action, int ro
         row = rowCount(parent);
     }
 
-    beginResetModel();
+    //TODO: change beginResetModel() to proper call
+    //beginResetModel();
 
     int srcGroup = id.groupIndex();
     if(id.isNote()) {
@@ -539,7 +540,8 @@ bool PassBook::dropMimeData(const QMimeData *data, Qt::DropAction action, int ro
         std::swap(m_notes[srcGroup], m_notes[row-1]);
     }
 
-    endResetModel();
+    //TODO: change endResetModel() to proper call
+    //endResetModel();
     m_changed = true;
 
     // hack: return false to prevent internal removeRow() function call
