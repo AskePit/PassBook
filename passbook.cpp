@@ -145,8 +145,8 @@ void PassBook::save()
 
     SecureBytes data;
 
-    for(const auto &noteList : m_notes) {
-        for(const auto &note : noteList) {
+    for(auto &noteList : std::as_const(m_notes)) {
+        for(auto &note : std::as_const(noteList)) {
             data += note.source;
             data += SOURCE_END;
             data += note.URL;

@@ -40,8 +40,11 @@ enum_interface
         }
     }
 
-    static QList<PasswordType::type> enumerate() {
-        return { Letters, LettersAndDigits, Standard, Advanced };
+    static const QList<PasswordType::type> &enumerate() {
+        static const QList<PasswordType::type> l {
+            Letters, LettersAndDigits, Standard, Advanced
+        };
+        return l;
     }
 };
 

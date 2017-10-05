@@ -11,7 +11,7 @@ enum_class(Language) {
     Russian
 
 enum_interface
-    static QList<Language::type> enumerate();
+    static const QList<Language::type> &enumerate();
     static QString toString(Language::type t);
     static Language::type fromString(const QString &str);
     static QString i18nName(Language::type t);

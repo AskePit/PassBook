@@ -51,10 +51,10 @@ void LoginDialog::loadAccounts()
     int filterLength {filter.length() - 1};
 
     QDir accountsDir {accountsPath, filter, QDir::Name, QDir::Files | QDir::Hidden | QDir::NoSymLinks};
-    QFileInfoList fileList {accountsDir.entryInfoList()};
+    const QFileInfoList fileList {accountsDir.entryInfoList()};
 
     ui->loginBox->clear();
-    for(const auto &file : fileList) {
+    for(auto &file : fileList) {
         QString str {file.fileName()};
         str.truncate(str.size() - filterLength);
         ui->loginBox->addItem(str);

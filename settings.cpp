@@ -3,8 +3,11 @@
 #include <QTranslator>
 #include <QLibraryInfo>
 
-QList<Language::type> Language::enumerate() {
-    return {English, Russian};
+const QList<Language::type> &Language::enumerate() {
+    static const QList<Language::type> l {
+        English, Russian
+    };
+    return l;
 }
 
 QString Language::toString(Language::type t) {

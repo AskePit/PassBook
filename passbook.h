@@ -38,7 +38,7 @@ class NoteTree : public QList<NoteList>
 {
 public:
     const NoteList *operator[](const QString &group) const {
-        for(const auto &list : *this) {
+        for(auto &list : std::as_const(*this)) {
             if(list.name() == group) {
                 return &list;
             }
