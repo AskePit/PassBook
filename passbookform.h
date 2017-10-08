@@ -21,6 +21,7 @@ public:
 signals:
     void tableHover(QMouseEvent *event);
     void tableClick(QMouseEvent *event);
+    void groupsClick(QMouseEvent *event);
 };
 
 class PassBookDelegate : public QStyledItemDelegate
@@ -58,21 +59,26 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private slots:
-    void on_addButton_clicked();
-    void on_deleteButton_clicked();
+    void on_addPassButton_clicked();
+    void on_deletePassButton_clicked();
+    void on_addGroupButton_clicked();
+    void on_deleteGroupButton_clicked();
     void on_backButton_clicked();
     void on_actionSave_triggered();
     void on_actionEditPassword_triggered();
     void on_actionGeneratePassword_triggered();
-    void on_actionInsertAbove_triggered();
-    void on_actionInsertBelow_triggered();
+    void on_actionInsertPassAbove_triggered();
+    void on_actionInsertPassBelow_triggered();
+    void on_actionInsertGroupAbove_triggered();
+    void on_actionInsertGroupBelow_triggered();
 
     void save();
     void doubleClickReact(const QModelIndex& idx);
-    void clickReact(const QModelIndex& idx);
-    void callTableContextMenu(const QPoint &pos);
-    void callGroupsContextMenu(const QPoint &pos);
-    void deselectAll();
+    void checkTableSelection(const QModelIndex& idx);
+    void checkListSelection(const QModelIndex& idx);
+    void callTableContextMenu(const QPoint &point);
+    void callGroupsContextMenu(const QPoint &point);
+    void deselectPass();
 
 private:
     Ui::PassBookForm *ui;

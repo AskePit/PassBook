@@ -249,6 +249,9 @@ int PassBook::rowCount(const QModelIndex &parent) const
 int PassBook::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
+    if(is_group) {
+        return 1;
+    }
     return Column::Count;
 }
 
