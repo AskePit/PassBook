@@ -99,13 +99,24 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     ui->passTable->viewport()->setMouseTracking(true);
     ui->passTable->viewport()->installEventFilter(filter);
 
-    ui->groupList->setModel(passBook);
-    ui->passTable->setModel(passBook);
+    ui->groupList->setModel(m_passBook);
+    ui->passTable->setModel(m_passBook);
 
     connect(ui->groupList->selectionModel(), &QItemSelectionModel::currentChanged, [this](const QModelIndex &curr, const QModelIndex &prev) {
         Q_UNUSED(prev);
         if(curr.isValid()) {
             ui->passTable->setRootIndex(curr);
+            if(!ui->passTable->isEnabled()) {
+                ui->passTable->setEnabled(true);
+                for(int c = 0; c<Column::Count; ++c) {
+                    ui->passTable->showColumn(c);
+                }
+            }
+        } else {
+            for(int c = 0; c<Column::Count; ++c) {
+                ui->passTable->hideColumn(c);
+            }
+            ui->passTable->setDisabled(true);
         }
 
         checkListSelection(curr);
