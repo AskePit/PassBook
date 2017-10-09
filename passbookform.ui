@@ -90,8 +90,8 @@
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="">
-       <layout class="QVBoxLayout" name="verticalLayout">
+      <widget class="QWidget" name="groupsLayoutWidget">
+       <layout class="QVBoxLayout" name="groupsLayout">
         <item>
          <widget class="QListView" name="groupList">
           <property name="sizePolicy">
@@ -156,7 +156,7 @@ QListView::item:selected {
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="groupsPanelLayout">
           <item>
            <widget class="QPushButton" name="addGroupButton">
             <property name="sizePolicy">
@@ -227,8 +227,8 @@ QListView::item:selected {
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
-       <layout class="QVBoxLayout" name="verticalLayout_4">
+      <widget class="QWidget" name="passLayoutWidget">
+       <layout class="QVBoxLayout" name="passLayout">
         <item>
          <widget class="QTableView" name="passTable">
           <property name="sizePolicy">
@@ -299,7 +299,7 @@ QTableView::item:selected {
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <layout class="QHBoxLayout" name="passPanelLayout">
           <item>
            <spacer name="horizontalSpacer_2">
             <property name="orientation">

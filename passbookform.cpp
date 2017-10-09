@@ -122,7 +122,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
         checkListSelection(curr);
         checkTableSelection(curr);
     });
-    ui->groupList->setCurrentIndex(passBook->index(0, 0));
+    ui->groupList->setCurrentIndex(m_passBook->index(0, 0));
 
     connect(ui->passTable->selectionModel(), &QItemSelectionModel::currentChanged, [this](const QModelIndex &curr, const QModelIndex &prev) {
         Q_UNUSED(prev);
@@ -141,7 +141,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
 
     ui->passTable->setFocus();
 
-    connect(filter, &TableEventFilter::tableHover, [=](QMouseEvent *event) {
+    connect(filter, &TableEventFilter::tableHover, [this](QMouseEvent *event) {
         int c { ui->passTable->columnAt(event->x()) };
         bool isPassword { c == Column::Password };
 
@@ -157,7 +157,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
         }
 
         // trigger passwords to be repainted in case of comming from/to horizontal header
-        emit passBook->dataChanged(passBook->index(0, Column::Password), passBook->index(passBook->rowCount()-1, Column::Password), {Qt::DisplayRole});
+        emit m_passBook->dataChanged(m_passBook->index(0, Column::Password), m_passBook->index(m_passBook->rowCount()-1, Column::Password), {Qt::DisplayRole});
     });
 
     connect(filter, &TableEventFilter::tableClick, [=](QMouseEvent *event) {

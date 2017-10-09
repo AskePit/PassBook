@@ -391,7 +391,7 @@ bool PassBook::insertRows(int row, int count, const QModelIndex &parent)
 
     if(is_group) {
         for(int i = 0; i<count; ++i) {
-            m_notes.insert(row, NoteList{tr("New Group")});
+            m_notes.insert(row, NoteList{tr("Group")});
         }
     } else {
         noteid parentId {parent.internalId()};
@@ -403,8 +403,7 @@ bool PassBook::insertRows(int row, int count, const QModelIndex &parent)
         NoteList &noteList = m_notes[group];
 
         for(int i = 0; i<count; ++i) {
-            Note &&note {Note{}};
-            note.source = tr("New Password");
+            Note note;
             note.password.load(QStringLiteral(""), m_master);
             noteList.insert(row, std::move(note));
         }
