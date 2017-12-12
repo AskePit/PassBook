@@ -155,9 +155,6 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
             QModelIndex i = ui->passTable->indexAt(event->pos());
             m_passBookDelegate->setHoveredPassword(i);
         }
-
-        // trigger passwords to be repainted in case of comming from/to horizontal header
-        emit m_passBook->dataChanged(m_passBook->index(0, Column::Password), m_passBook->index(m_passBook->rowCount()-1, Column::Password), {Qt::DisplayRole});
     });
 
     connect(filter, &TableEventFilter::tableClick, [=](QMouseEvent *event) {
