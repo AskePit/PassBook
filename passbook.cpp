@@ -494,43 +494,50 @@ bool PassBook::dropMimeData(const QMimeData *data, Qt::DropAction action, int ro
         id = i;
     }
 
-    // drop groups to groups
+    // drop notes to groups
     if(is_group && id.isNote()) {
         return false;
     }
 
-    // drop notes to notes
+    // drop groups to notes
     if(!is_group && id.isGroup()) {
         return false;
     }
 
-    // Note: dropMimeData()'s row argument is always ment to be +1 bigger than
-    // we expect. Example: If I drag 0 row to row 1, then row argument in this
-    // function is 2 because it is ment to create 2nd row, fill it with data
-    // and then remove 0 row so that 2nd row becomes the 1st. Further code is
-    // written with this fact keeped in mind.
-
-    // insert to 0 means insert to 1st
-    if(row == 0) {
-        row = 1;
-    }
+    bool groupsChange = id.isGroup();
+    bool notesChange = id.isNote();
+    int srcGroup = id.groupIndex();
+    int dstGroup = noteid{parent.internalId()}.groupIndex();
+    bool sameGroup = !groupsChange && srcGroup == dstGroup;
 
     // insert to -1 means append to the end
     if(row == -1) {
+        if(sameGroup || groupsChange) {
+            int last = rowCount(parent)-1;
+            bool lastNote = id.isNote() && id.noteIndex() == last;
+            bool lastGroup = id.isGroup() && id.groupIndex() == last;
+            if(lastNote || lastGroup) {
+                return false;
+            }
+        }
+
         row = rowCount(parent);
     }
 
-    int srcGroup = id.groupIndex();
-    if(id.isNote()) {
-        int dstGroup = noteid{parent.internalId()}.groupIndex();
+    if(notesChange) {
         int srcNote = id.noteIndex();
-        int dstNote = row-1;
 
-        if(srcGroup == dstGroup) {
+        if(sameGroup) {
+            if(row == srcNote) {
+                return false;
+            }
+
             // move notes within group
-            beginMoveRows(parent, srcNote, srcNote, parent, (dstNote == 0 ? dstNote : dstNote+1));
-            std::swap(m_notes[srcGroup][srcNote], m_notes[dstGroup][dstNote]);
-
+            beginMoveRows(parent, srcNote, srcNote, parent, row);
+            if(row > srcNote) {
+                --row;
+            }
+            m_notes[dstGroup].move(srcNote, row);
         } else {
             // move notes among groups
             beginMoveRows(index(srcGroup, 0), srcNote, srcNote, parent, row);
@@ -538,9 +545,16 @@ bool PassBook::dropMimeData(const QMimeData *data, Qt::DropAction action, int ro
             m_notes[srcGroup].removeAt(srcNote);
         }
     } else {
+        if(row == srcGroup) {
+            return false;
+        }
+
         // move groups
-        beginMoveRows(parent, srcGroup, srcGroup, parent, (row == 1 ? row-1 : row));
-        std::swap(m_notes[srcGroup], m_notes[row-1]);
+        beginMoveRows(parent, srcGroup, srcGroup, parent, row);
+        if(row > srcGroup) {
+            --row;
+        }
+        m_notes.move(srcGroup, row);
     }
     endMoveRows();
 
