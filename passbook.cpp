@@ -196,6 +196,12 @@ void PassBook::setPassword(int g, int row, SecureString &&password)
     m_changed = true;
 }
 
+QModelIndex PassBook::groupIndex(const QString &group)
+{
+    int i = m_notes.groupIndex(group);
+    return index(i, 0);
+}
+
 // QAbstractTableModel interface
 
 #define is_group !parent.isValid()

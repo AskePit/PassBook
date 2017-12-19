@@ -171,6 +171,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     ui->passTable->viewport()->setAcceptDrops(true);
     restoreGeometry(iniSettings.value(QStringLiteral("MainFormGeometry")).toByteArray());
 
+    restoreCurrentGroup();
     deselectPass();
 }
 
@@ -287,6 +288,23 @@ void PassBookForm::deselectPass()
     ui->deletePassButton->setDisabled(true);
 }
 
+void PassBookForm::saveCurrentGroup()
+{
+    QVariant group = m_passBook->data(ui->groupList->currentIndex());
+    iniSettings.setValue("CurrentGroup", group);
+}
+
+void PassBookForm::restoreCurrentGroup()
+{
+    QString group = iniSettings.value("CurrentGroup").toString();
+    if(group.isNull()) {
+        return;
+    }
+
+    QModelIndex i = m_passBook->groupIndex(group);
+    ui->groupList->setCurrentIndex(i);
+}
+
 void PassBookForm::closeEvent(QCloseEvent *event)
 {
     Q_UNUSED(event);
@@ -294,6 +312,7 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     clipboard->clear();
 
     iniSettings.setValue(QStringLiteral("MainFormGeometry"), saveGeometry());
+    saveCurrentGroup();
 
     if(m_passBook->wasChanged()) {
         int ret { callQuestionDialog(tr("Do you want to save changes?"), this) };

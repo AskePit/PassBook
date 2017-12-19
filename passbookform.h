@@ -80,6 +80,9 @@ private slots:
     void callGroupsContextMenu(const QPoint &point);
     void deselectPass();
 
+    void saveCurrentGroup();
+    void restoreCurrentGroup();
+
 private:
     Ui::PassBookForm *ui;
 

@@ -55,6 +55,18 @@ public:
         return nullptr;
     }
 
+    int groupIndex(const QString &group) {
+        int i = 0;
+        for(auto &list : qAsConst(*this)) {
+            if(list.name() == group) {
+                return i;
+            }
+            ++i;
+        }
+
+        return -1;
+    }
+
     NoteList &operator[](int i) { return QList::operator [](i); }
     const NoteList &operator[](int i) const { return QList::operator [](i); }
 };
@@ -106,6 +118,7 @@ public:
     NoteTree& notes() { return m_notes; }
     SecureString getPassword(int g, int row) const;
     void setPassword(int g, int row, SecureString &&password);
+    QModelIndex groupIndex(const QString &group);
 
     // QAbstractTableModel interface
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
