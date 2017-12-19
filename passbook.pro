@@ -45,7 +45,3 @@ TRANSLATIONS += \
     resources/i18n/ru.ts
 
 DEFINES *= QT_USE_QSTRINGBUILDER
-
-CONFIG += c++14
-
-QMAKE_CXXFLAGS_RELEASE += -Ofast
