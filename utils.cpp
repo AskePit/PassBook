@@ -4,14 +4,14 @@
 
 #include <ctime>
 
-#include <QDesktopWidget>
 #include <QFileInfo>
+#include <QScreen>
 
-void memrandomset(byte* data, size_t size)
+void memrandomset(u8* data, size_t size)
 {
     srand((unsigned int)time(NULL));
 
-    byte* dataEnd { data + size };
+    u8* dataEnd { data + size };
 
     while(data != dataEnd) {
         *data = rand()%256;
@@ -21,7 +21,7 @@ void memrandomset(byte* data, size_t size)
 
 void memrandomset(SecureBytes &bytes)
 {
-    memrandomset(as<byte*>(bytes), bytes.size());
+    memrandomset(as<u8*>(bytes), bytes.size());
 }
 
 int callQuestionDialog(const QString &message, QWidget *parent)
@@ -75,9 +75,9 @@ QString passGenerate(int n, PasswordType::type type)
 
 void allignWindowToCenter(QWidget *w)
 {
-    QWidget *scr { QApplication::desktop()->screen(0) }; // 0 - screen No
-    int scrWidth { scr->width() };
-    int scrHeight {scr->height() };
+    QScreen *scr { QApplication::screens()[0] }; // 0 - screen No
+    int scrWidth { scr->size().width() };
+    int scrHeight {scr->size().height() };
 
     w->setGeometry((scrWidth/2) - (w->width()/2), (scrHeight/2) - (w->height()/2), w->width(), w->height());
 }

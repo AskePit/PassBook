@@ -64,7 +64,7 @@ static void parseData(const SecureBytes &data, NoteTree &noteTree, const Master 
             continue;
         }
 
-        byte code = *cursor;
+        u8 code = *cursor;
 
         SecureBytes fieldData(data.mid(head - data.data(), cursor - head));
         QString str {std::move(fieldData)};
@@ -114,7 +114,7 @@ bool PassBook::load()
     {
         Crypter crypter;
         MasterDoor door {m_master};
-        crypter.cryptData(as<byte*>(data), as<byte*>(cryptedData), sizeofMessage, as<const byte*>(door.get()));
+        crypter.cryptData(as<u8*>(data), as<u8*>(cryptedData), sizeofMessage, as<const u8*>(door.get()));
     }
 
     parseData(data, m_notes, m_master);
@@ -147,20 +147,20 @@ void PassBook::save()
 
     for(auto &noteList : qAsConst(m_notes)) {
         for(auto &note : qAsConst(noteList)) {
-            data += note.source;
+            data += note.source.toUtf8();
             data += SOURCE_END;
-            data += note.URL;
+            data += note.URL.toUtf8();
             data += URL_END;
-            data += note.login;
+            data += note.login.toUtf8();
             data += LOGIN_END;
-            data += note.password.get();
+            data += note.password.get().toUtf8();
             data += PASS_END;
         }
-        data += noteList.name();
+        data += noteList.name().toUtf8();
         data += GROUP_END;
     }
 
-    const int size {data.size()};
+    const qsizetype size {data.size()};
 
     SecureBytes cryptedData(size);
 
@@ -168,7 +168,7 @@ void PassBook::save()
     {
         Crypter crypter;
         MasterDoor door {m_master};
-        crypter.cryptData(as<byte*>(cryptedData), as<byte*>(data), size, as<const byte*>(door.get()));
+        crypter.cryptData(as<u8*>(cryptedData), as<u8*>(data), size, as<const u8*>(door.get()));
         hs = door.getHash();
     }
 

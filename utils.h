@@ -8,7 +8,7 @@
 class QWidget;
 class SecureBytes;
 
-void memrandomset(byte* data, size_t size);
+void memrandomset(u8* data, size_t size);
 void memrandomset(SecureBytes &bytes);
 
 template<class OUT, class IN>

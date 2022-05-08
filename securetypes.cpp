@@ -21,7 +21,7 @@ SecureBytes::SecureBytes(int size) : QByteArray(size, 0) {}
 SecureBytes::SecureBytes(SecureString &&str) : QByteArray(str.toUtf8()) {}
 SecureBytes::SecureBytes(QByteArray &&bytes) : QByteArray(bytes) {}
 
-SecureBytes::SecureBytes(std::initializer_list<byte> list)
+SecureBytes::SecureBytes(std::initializer_list<u8> list)
     : QByteArray(static_cast<int>(list.size()), 0)
 {
     std::copy(list.begin(), list.end(), begin());
@@ -55,7 +55,7 @@ Master::Master(SecureBytes &&key)
 
 void Master::init()
 {
-    int size { m_data.size() };
+    qsizetype size { m_data.size() };
     m_data.resize(gost::SIZE_OF_KEY);
 
     if(static_cast<size_t>(size) < gost::SIZE_OF_KEY) {
@@ -67,7 +67,7 @@ void Master::init()
 
 Master::~Master()
 {
-    wipememory(as<byte*>(m_data), gost::SIZE_OF_KEY);
+    wipememory(as<u8*>(m_data), gost::SIZE_OF_KEY);
 }
 
 static inline void xor_arrays(QByteArray &to, const QByteArray &from)
@@ -78,7 +78,7 @@ static inline void xor_arrays(QByteArray &to, const QByteArray &from)
         begin(to), end(to),
         begin(from),
         begin(to),
-        bit_xor<byte>()
+        bit_xor<u8>()
     );
 }
 
@@ -116,7 +116,7 @@ SecureBytes MasterDoor::getHash(const SecureBytes &salt)
     SecureBytes salted = m_master.m_data + salt + staticSalt;
     SecureBytes hash(gost::SIZE_OF_HASH);
 
-    gost::hash(as<byte*>(hash), as<byte*>(salted), salted.size());
+    gost::hash(as<u8*>(hash), as<u8*>(salted), salted.size());
     return hash;
 }
 
@@ -145,12 +145,12 @@ void Password::load(QString &&pass, const Master &master)
 {
     SecureBytes bytes(std::move(pass));
 
-    int size { bytes.size() };
+    qsizetype size { bytes.size() };
     m_cryptedPass.resize(size);
 
     gost::Crypter crypter;
     MasterDoor door(master);
-    crypter.cryptData(as<byte*>(m_cryptedPass), as<byte*>(bytes), size, as<const byte*>(door.get()));
+    crypter.cryptData(as<u8*>(m_cryptedPass), as<u8*>(bytes), size, as<const u8*>(door.get()));
 
     m_master = &master;
     m_loaded = true;
@@ -171,7 +171,7 @@ SecureString Password::get() const
 
     gost::Crypter crypter;
     MasterDoor door {*m_master};
-    crypter.cryptData(as<byte*>(pass), as<const byte*>(m_cryptedPass), m_cryptedPass.size(), as<const byte*>(door.get()));
+    crypter.cryptData(as<u8*>(pass), as<const u8*>(m_cryptedPass), m_cryptedPass.size(), as<const u8*>(door.get()));
 
     return SecureString{ QString::fromUtf8(pass) };
 }
@@ -194,7 +194,7 @@ void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool
         QFont font {QStringLiteral("Consolas"), 9};
         QFontMetrics fm {font};
         const int margin {4};
-        int w { fm.width(pass) + margin };
+        int w { static_cast<int>(fm.averageCharWidth() * pass.size() + margin) };
 
         QPixmap pixmap {w, rect.height()};
         pixmap.fill();

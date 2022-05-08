@@ -175,7 +175,7 @@ void Crypter::setTable(const char* filename)
     fstream f;
     f.open(filename, fstream::in | fstream::binary);
 
-    byte table[128];
+    u8 table[128];
     f.read(as<char*>(table), 128);
     f.close();
 
@@ -184,7 +184,7 @@ void Crypter::setTable(const char* filename)
 
 // 128 bytes representing SBox table for GOST encryption
 // this 128 bytes will be transformed to special 4*256 table (for better algorythm performance)
-void Crypter::setTable(const byte *table)
+void Crypter::setTable(const u8 *table)
 {
     const u8(*raw)[16] = as<const u8(*)[16]>(table);
 
@@ -211,14 +211,14 @@ void Crypter::setSync(const u64 sync)
 	Sync[1] = static_cast<u32>(sync>>32);
 }
 
-void Crypter::cryptString(byte *dst, const char *scr, const byte *password)
+void Crypter::cryptString(u8 *dst, const char *scr, const u8 *password)
 {
-    cryptData(dst, as<const byte *>(scr), strlen(scr), password);
+    cryptData(dst, as<const u8 *>(scr), strlen(scr), password);
 }
 
-void Crypter::decryptString(char *dst, const byte *scr, size_t size, const byte *password)
+void Crypter::decryptString(char *dst, const u8 *scr, size_t size, const u8 *password)
 {
-    cryptData(as<byte *>(dst), as<const byte *>(scr), size, password);
+    cryptData(as<u8 *>(dst), as<const u8 *>(scr), size, password);
     dst[size] = '\0';
 }
 
@@ -232,7 +232,7 @@ inline u32 addMod32_1(u32 x, u32 y) {
 	return sum;
 }
 
-void Crypter::cryptData(byte *dst, const byte *src, size_t size, const byte *password)
+void Crypter::cryptData(u8 *dst, const u8 *src, size_t size, const u8 *password)
 {
     if(size == 0) {
         return;
@@ -245,7 +245,7 @@ void Crypter::cryptData(byte *dst, const byte *src, size_t size, const byte *pas
 		remain = 8;
 	}
 
-    const byte* lastBytes { src + size - remain + 1 };
+    const u8* lastBytes { src + size - remain + 1 };
 
 	u32 AB[2];
     u32 &A {AB[0]};

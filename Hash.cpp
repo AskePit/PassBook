@@ -545,7 +545,7 @@ namespace gost
 	}};
 
 	// Constant values for KeySchedule function
-    static const byte C[12][64] {
+    static const u8 C[12][64] {
 	{
 		0xB1,0x08,0x5B,0xDA,0x1E,0xCA,0xDA,0xE9,0xEB,0xCB,0x2F,0x81,0xC0,0x65,0x7C,0x1F,
 		0x2F,0x6A,0x76,0x43,0x2E,0x45,0xD0,0x16,0x71,0x4E,0xB8,0x8D,0x75,0x85,0xC4,0xFC,
@@ -622,8 +622,8 @@ namespace gost
 
 	static void AddModulo512(const void *a, const void *b, void *c)
 	{
-        const byte *A = (byte*)a, *B = (byte*)b;
-        byte *C = (byte*)c;
+        const u8 *A = (u8*)a, *B = (u8*)b;
+        u8 *C = (u8*)c;
 
         int t = 0;
 	#ifdef FULL_UNROLL
@@ -725,10 +725,10 @@ namespace gost
 	#endif
 	}
 
-	static void F(byte *state)
+    static void F(u8 *state)
 	{
 		u64 return_state[8];
-		register u64 r = 0;
+        u64 r = 0;
 
 		r ^= T[0][state[56]];
 		r ^= T[1][state[48]];
@@ -817,12 +817,12 @@ namespace gost
 		r ^= T[7][state[7]];
 		return_state[7] = r;
 
-		memcpy(state, (byte*)return_state, 64);
+        memcpy(state, (u8*)return_state, 64);
 	}
 
 	#define KeySchedule(K, i) AddXor512(K, C[i], K); F(K);
 
-	static void E(byte *K, const byte *m, byte *state)
+    static void E(u8 *K, const u8 *m, u8 *state)
 	{
 	#ifdef FULL_UNROLL
 		AddXor512(m, K, state);
@@ -887,9 +887,9 @@ namespace gost
 	#endif
 	}
 
-	static void g_N(const byte *N, byte *h, const byte *m)
+    static void g_N(const u8 *N, u8 *h, const u8 *m)
 	{
-		byte t[64], K[64];
+        u8 t[64], K[64];
 
 		AddXor512(N, h, K);
 		F(K);
@@ -898,13 +898,13 @@ namespace gost
 		AddXor512(t, m, h);
 	}
 
-	void hash(byte* hash, const byte* message, const uint length)
+    void hash(u8* hash, const u8* message, const uint length)
 	{
-		byte v512[64]  = {0};
-		byte v0[64]    = {0};
-		byte Sigma[64] = {0};
-		byte N[64]     = {0};
-		byte m[64];
+        u8 v512[64]  = {0};
+        u8 v0[64]    = {0};
+        u8 Sigma[64] = {0};
+        u8 N[64]     = {0};
+        u8 m[64];
 		u64 len = length*8;
 
 		memset(hash, 0, 64);
@@ -929,7 +929,7 @@ namespace gost
 
 		g_N(N, hash, m);
 		v512[63] = len & 0xFF;
-		v512[62] = (byte)(len >> 8);
+        v512[62] = (u8)(len >> 8);
 		AddModulo512(N, v512, N);
 
 		AddModulo512(Sigma, m, Sigma);

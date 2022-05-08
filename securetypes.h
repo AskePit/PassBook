@@ -17,7 +17,7 @@ public:
     SecureBytes();
     SecureBytes(int size);
     explicit SecureBytes(SecureString &&str);
-    SecureBytes(std::initializer_list<byte>);
+    SecureBytes(std::initializer_list<u8>);
     SecureBytes(QByteArray &&bytes);
 
     ~SecureBytes();

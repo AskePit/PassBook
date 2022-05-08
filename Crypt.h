@@ -23,13 +23,13 @@ namespace gost
 		Crypter();
 		~Crypter();
 
-		void cryptData(byte *dst, const byte *scr, size_t size, const byte *password);
-		void cryptString(byte *dst, const char *scr, const byte *password);
-		void decryptString(char *dst, const byte *scr, size_t size, const byte *password);
+        void cryptData(u8 *dst, const u8 *scr, size_t size, const u8 *password);
+        void cryptString(u8 *dst, const char *scr, const u8 *password);
+        void decryptString(char *dst, const u8 *scr, size_t size, const u8 *password);
 
 		void useDefaultTable();
 		void setTable(const char *filename); // file with 128 bytes representing SBox table for GOST encryption
-		void setTable(const byte *table);    // 128 bytes representing SBox table for GOST encryption
+        void setTable(const u8 *table);    // 128 bytes representing SBox table for GOST encryption
 
 		void useDefaultSync();
 		void setSync(const u64 sync);
