@@ -6,8 +6,8 @@
 #include "settingsdialog.h"
 
 #include "utils.h"
-#include "crypt.h"
-#include "hash.h"
+#include "Crypt.h"
+#include "Hash.h"
 #include "passbook.h"
 
 #include <QDir>
@@ -48,7 +48,7 @@ void LoginDialog::loadAccounts()
 {
     QString &accountsPath {appSettings.accountsPath};
     QString filter(QStringLiteral("*%1").arg(ACCOUNT_EXT));
-    int filterLength {filter.length() - 1};
+    qsizetype filterLength {filter.length() - 1};
 
     QDir accountsDir {accountsPath, filter, QDir::Name, QDir::Files | QDir::Hidden | QDir::NoSymLinks};
     const QFileInfoList fileList {accountsDir.entryInfoList()};
@@ -86,7 +86,7 @@ void LoginDialog::on_enterButton_clicked()
         return;
     }
 
-    Master master {std::move(ui->passwordLine->text())};
+    Master master {ui->passwordLine->text()};
     ui->passwordLine->clear();
 
     PassBook* passBook = new PassBook {filename, master};
@@ -114,7 +114,7 @@ void LoginDialog::on_deleteButton_clicked()
     }
     f.close();
 
-    Master master {std::move(ui->passwordLine->text())};
+    Master master {ui->passwordLine->text()};
     ui->passwordLine->clear();
 
     PassBook passBook {filename, master};
