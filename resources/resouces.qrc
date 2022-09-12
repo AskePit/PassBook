@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>logo_transparent.png</file>
+        <file>logo_white.png</file>
+        <file>logo_white.ico</file>
+    </qresource>
+</RCC>

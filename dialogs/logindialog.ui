@@ -7,11 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>366</width>
-    <height>189</height>
+    <height>192</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Pass Book</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/resouces.qrc">
+    <normaloff>:/logo_white.png</normaloff>:/logo_white.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="minimumSize">
@@ -164,7 +168,7 @@
      <x>0</x>
      <y>0</y>
      <width>366</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuLanguage">
@@ -188,6 +192,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources/resouces.qrc"/>
+ </resources>
  <connections/>
 </ui>

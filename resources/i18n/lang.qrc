@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/i18n">
         <file>en.qm</file>
-		<file>ru.qm</file>
+        <file>ru.qm</file>
     </qresource>
+    <qresource prefix="/img"/>
 </RCC>

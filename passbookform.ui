@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Pass Book</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources/resouces.qrc">
+    <normaloff>:/logo_white.png</normaloff>:/logo_white.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -66,7 +70,6 @@
        <font>
         <family>Tahoma</family>
         <pointsize>8</pointsize>
-        <weight>50</weight>
         <italic>false</italic>
         <bold>false</bold>
         <underline>false</underline>
@@ -290,10 +293,10 @@ QTableView::item:selected {
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
           </attribute>
-          <attribute name="verticalHeaderDefaultSectionSize">
+          <attribute name="verticalHeaderMinimumSectionSize">
            <number>23</number>
           </attribute>
-          <attribute name="verticalHeaderMinimumSectionSize">
+          <attribute name="verticalHeaderDefaultSectionSize">
            <number>23</number>
           </attribute>
          </widget>
@@ -431,6 +434,8 @@ QTableView::item:selected {
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources/resouces.qrc"/>
+ </resources>
  <connections/>
 </ui>

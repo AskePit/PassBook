@@ -31,6 +31,10 @@
   <property name="windowTitle">
    <string>Password generation</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/resouces.qrc">
+    <normaloff>:/logo_white.png</normaloff>:/logo_white.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -126,6 +130,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources/resouces.qrc"/>
+ </resources>
  <connections/>
 </ui>

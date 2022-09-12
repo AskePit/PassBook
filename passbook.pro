@@ -38,10 +38,17 @@ FORMS    += \
     dialogs/settingsdialog.ui
 
 RESOURCES += \
-    resources/i18n/lang.qrc
+    resources/i18n/lang.qrc \
+    resources/resouces.qrc
 
 TRANSLATIONS += \
     resources/i18n/en.ts \
     resources/i18n/ru.ts
 
 DEFINES *= QT_USE_QSTRINGBUILDER
+
+DISTFILES += \
+    resources/logo_transparent.png \
+    resources/logo_white.png
+
+RC_ICONS = resources/logo_white.ico

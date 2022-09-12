@@ -25,6 +25,10 @@
   <property name="windowTitle">
    <string>Create Account</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../resources/resouces.qrc">
+    <normaloff>:/logo_white.png</normaloff>:/logo_white.png</iconset>
+  </property>
   <widget class="QLineEdit" name="loginLine">
    <property name="geometry">
     <rect>
@@ -136,7 +140,6 @@
    </property>
    <property name="font">
     <font>
-     <weight>75</weight>
      <bold>true</bold>
     </font>
    </property>
@@ -148,6 +151,8 @@
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources/resouces.qrc"/>
+ </resources>
  <connections/>
 </ui>
