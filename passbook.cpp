@@ -18,13 +18,39 @@ static inline quint64 fileSize(const QString &fileName)
     return info.size();
 }
 
+using FormatVersion = u32;
+static constexpr FormatVersion NO_VERSION {std::numeric_limits<u32>::max()};
+static constexpr FormatVersion VERSION_130 {0x01030000}; // corresponds to 1.3.0.0 version in big-endian
+
+FormatVersion PassBook::getDataVersion()
+{
+    QFile in {m_fileName};
+    in.open(QIODevice::ReadOnly);
+
+    FormatVersion version;
+    QDataStream(in.peek(sizeof(FormatVersion))) >> version;
+
+    // place to adapt to format versions
+    if (version != VERSION_130) {
+        return NO_VERSION;
+    }
+
+    return version;
+}
+
 int PassBook::verify()
 {
     using namespace gost;
 
-    quint64 sizeofFile {fileSize(m_fileName)};
+    FormatVersion version = getDataVersion();
 
-    if(sizeofFile < SIZE_OF_HASH + SIZE_OF_SALT) {
+    const quint64 sizeofFile {fileSize(m_fileName)};
+    const quint64 sizeOfHeader =
+            version == NO_VERSION
+                ? SIZE_OF_HASH + SIZE_OF_SALT
+                : SIZE_OF_HASH + SIZE_OF_SALT + sizeof(FormatVersion);
+
+    if(sizeofFile < sizeOfHeader) {
         return false;
     }
 
@@ -33,30 +59,56 @@ int PassBook::verify()
 
     QFile in {m_fileName};
     in.open(QIODevice::ReadOnly);
+
+    if (version != NO_VERSION) {
+        in.seek(sizeof(u32));
+    }
+
     in.read(as<char *>(fileHash), SIZE_OF_HASH);
-    in.read(as<char *>(fileSalt), SIZE_OF_SALT);
+    in.peek(as<char *>(fileSalt), SIZE_OF_SALT);
     in.close();
 
     MasterDoor door {m_master};
     SecureBytes realHash (door.getHash(fileSalt));
 
-    return fileHash == realHash ? static_cast<int>(sizeofFile - SIZE_OF_HASH - SIZE_OF_SALT)
-                                : -1;
+    return fileHash == realHash
+        ? static_cast<int>(sizeofFile - sizeOfHeader)
+        : -1;
 }
 
-static const char SOURCE_END {0x7};
-static const char URL_END    {0x8};
-static const char LOGIN_END  {0x9};
-static const char PASS_END   {0xA};
-static const char GROUP_END  {0xB};
+// Those ASCII control characters ARE used by text editors and applications nowadays
+// They correspond to \a \b \t \n and \v respectively
+// Thus they are NOT SAFE to use for custom text separators
+// So, we deprecate this format since 1.3.0
+static constexpr char DEPRECATED_SOURCE_END_120 {0x7};
+static constexpr char DEPRECATED_URL_END_120    {0x8};
+static constexpr char DEPRECATED_LOGIN_END_120  {0x9};
+static constexpr char DEPRECATED_PASS_END_120   {0xA};
+static constexpr char DEPRECATED_GROUP_END_120  {0xB};
 
-static void parseData(const SecureBytes &data, NoteTree &noteTree, const Master &master)
+// Those ASCII control characters are NOT used by text editors and applications nowadays
+// So, they are safe to use for custom text separators
+// We introduce them since 1.3.0
+static constexpr char SOURCE_END_130 {0x1};
+static constexpr char URL_END_130    {0x2};
+static constexpr char LOGIN_END_130  {0x3};
+static constexpr char PASS_END_130   {0x4};
+static constexpr char GROUP_END_130  {0x5};
+
+static void parseData(const SecureBytes &data, NoteTree &noteTree, const Master &master, FormatVersion version)
 {
     const char* head {data.data()};
     const char* cursor {head};
     const char* end {head + data.size()};
     Note note;
     NoteList noteList;
+
+    const char SOURCE_END = version == VERSION_130 ? SOURCE_END_130 : DEPRECATED_SOURCE_END_120;
+    const char URL_END    = version == VERSION_130 ? URL_END_130 : DEPRECATED_URL_END_120;
+    const char LOGIN_END  = version == VERSION_130 ? LOGIN_END_130 : DEPRECATED_LOGIN_END_120;
+    const char PASS_END   = version == VERSION_130 ? PASS_END_130 : DEPRECATED_PASS_END_120;
+    const char GROUP_END  = version == VERSION_130 ? GROUP_END_130 : DEPRECATED_GROUP_END_120;
+
 
     while(cursor != end) {
         if(*cursor < SOURCE_END || *cursor > GROUP_END) {
@@ -69,18 +121,19 @@ static void parseData(const SecureBytes &data, NoteTree &noteTree, const Master 
         SecureBytes fieldData(data.mid(head - data.data(), cursor - head));
         QString str {std::move(fieldData)};
 
-        switch(code) {
-            case SOURCE_END: note.source = str; break;
-            case URL_END:    note.URL    = str; break;
-            case LOGIN_END:  note.login  = str; break;
-            case PASS_END:   note.password.load(std::move(str), master);
-                             noteList.push_back(note);
-                             break;
-            case GROUP_END:  noteList.setName(str);
-                             noteTree.push_back(noteList);
-                             noteList.clear();
-                             break;
-            default: break;
+        if (code == SOURCE_END) {
+            note.source = str;
+        } else if (code == URL_END) {
+            note.URL = str;
+        } else if (code == LOGIN_END) {
+            note.login = str;
+        } else if (code == PASS_END) {
+            note.password.load(std::move(str), master);
+            noteList.push_back(note);
+        } else if (code == GROUP_END) {
+            noteList.setName(str);
+            noteTree.push_back(noteList);
+            noteList.clear();
         }
 
         head = ++cursor;
@@ -101,9 +154,16 @@ bool PassBook::load()
         return m_loaded = false;
     }
 
+    FormatVersion version = getDataVersion();
+
+    const quint64 sizeOfHeader =
+            version == NO_VERSION
+                ? SIZE_OF_HASH + SIZE_OF_SALT
+                : SIZE_OF_HASH + SIZE_OF_SALT + sizeof(FormatVersion);
+
     QFile f {m_fileName};
     f.open(QIODevice::ReadOnly);
-    f.seek(SIZE_OF_HASH + SIZE_OF_SALT);
+    f.seek(sizeOfHeader);
 
     SecureBytes cryptedData(sizeofMessage);
     SecureBytes data(sizeofMessage);
@@ -117,7 +177,7 @@ bool PassBook::load()
         crypter.cryptData(as<u8*>(data), as<u8*>(cryptedData), sizeofMessage, as<const u8*>(door.get()));
     }
 
-    parseData(data, m_notes, m_master);
+    parseData(data, m_notes, m_master, version);
 
     return m_loaded = true;
 }
@@ -148,16 +208,16 @@ void PassBook::save()
     for(auto &noteList : qAsConst(m_notes)) {
         for(auto &note : qAsConst(noteList)) {
             data += note.source.toUtf8();
-            data += SOURCE_END;
+            data += SOURCE_END_130;
             data += note.URL.toUtf8();
-            data += URL_END;
+            data += URL_END_130;
             data += note.login.toUtf8();
-            data += LOGIN_END;
+            data += LOGIN_END_130;
             data += note.password.get().toUtf8();
-            data += PASS_END;
+            data += PASS_END_130;
         }
         data += noteList.name().toUtf8();
-        data += GROUP_END;
+        data += GROUP_END_130;
     }
 
     const qsizetype size {data.size()};
@@ -174,10 +234,11 @@ void PassBook::save()
 
     QFile f{m_fileName};
     f.open(QIODevice::WriteOnly | QIODevice::Truncate);
-    f.write(as<char*>(hs.hash), SIZE_OF_HASH);
-    f.write(as<char*>(hs.salt), SIZE_OF_SALT);
-    f.write(as<char*>(cryptedData), size);
-    f.close();
+    QDataStream out(&f);
+    out << VERSION_130;
+    out.writeRawData(as<char*>(hs.hash), SIZE_OF_HASH);
+    out.writeRawData(as<char*>(hs.salt), SIZE_OF_SALT);
+    out.writeRawData(as<char*>(cryptedData), size);
 
     m_changed = false;
 }

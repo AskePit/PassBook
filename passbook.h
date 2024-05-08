@@ -111,6 +111,7 @@ class PassBook : public QAbstractItemModel {
 
 public:
     PassBook(const QString &fileName, const Master &master);
+    u32 getDataVersion();
     int verify(); // returns sizeOfFile OR -1 in case of failure
     bool load();
     void save();
