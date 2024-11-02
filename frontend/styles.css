@@ -1,0 +1,28 @@
+body {
+    background-color: #3F4449;
+}
+
+#groups-passwords-splitter {
+    display: flex;
+    flex-direction: row;
+}
+
+#groups-side {
+    display: flex;
+    flex-direction: column;
+}
+
+#passwords-side {
+    display: flex;
+    flex-direction: column;
+}
+
+#head-controls-block {
+    display: flex;
+    flex-direction: row;
+}
+
+#passwords-block {
+    display: flex;
+    flex-direction: column;
+}
