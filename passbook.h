@@ -38,7 +38,7 @@ class NoteTree : public QList<NoteList>
 {
 public:
     const NoteList *operator[](const QString &group) const {
-        for(auto &list : qAsConst(*this)) {
+        for(auto &list : *this) {
             if(list.name() == group) {
                 return &list;
             }
@@ -57,7 +57,7 @@ public:
 
     int groupIndex(const QString &group) {
         int i = 0;
-        for(auto &list : qAsConst(*this)) {
+        for(auto &list : std::as_const(*this)) {
             if(list.name() == group) {
                 return i;
             }
@@ -109,7 +109,8 @@ enum_class(Column) {
 class PassBook : public QObject {
     Q_OBJECT
 
-    friend class PassBookModel;
+    friend class GroupsModel;
+    friend class PasswordsModel;
 
 public:
     PassBook(const QString &fileName, const Master &master);
@@ -135,17 +136,13 @@ private:
     void backupFile();
 };
 
-class PassBookModel : public QAbstractItemModel {
+class GroupsModel : public QAbstractItemModel {
     Q_OBJECT
 
 public:
-    PassBookModel(PassBook& data)
+    GroupsModel(PassBook& data)
         : m_data(data)
     {
-        QObject::connect(&m_data, &PassBook::passwordChanged, this, [this](int row){
-            QModelIndex idx {index(row, Column::Password)};
-            emit dataChanged(idx, idx, {Qt::DecorationRole});
-        });
     }
 
     QModelIndex groupIndex(const QString &group);
@@ -167,6 +164,75 @@ public:
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 private:
     PassBook& m_data;
+};
+
+class PasswordsModel : public QAbstractItemModel {
+    Q_OBJECT
+
+public:
+    PasswordsModel(PassBook& data)
+        : m_data(data)
+    {
+        QObject::connect(&m_data, &PassBook::passwordChanged, this, [this](int row){
+            QModelIndex idx {index(row, Column::Password)};
+            emit dataChanged(idx, idx, {Qt::DecorationRole});
+        });
+    }
+
+    void setGroup(int group) {
+        m_group = group;
+    }
+
+    void setAllGroups() {
+        m_group = ALL_GROUPS;
+    }
+
+    void setNoGroups() {
+        m_group = NO_GROUPS;
+    }
+
+    void invalidate() {
+        emit dataChanged(index(0, 0), index(GetCurrNotes().size(), Column::Count));
+    }
+
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex &index) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    bool setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles) override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+    bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex()) override;
+
+    Qt::DropActions supportedDropActions() const override;
+    QStringList mimeTypes() const override;
+    QMimeData *mimeData(const QModelIndexList &indexes) const override;
+    bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+private:
+    NoteList& GetCurrNotes() {
+        return m_data.m_notes[m_group];
+    }
+
+    const NoteList& GetCurrNotes() const {
+        return m_data.m_notes[m_group];
+    }
+
+    Note& GetNote(int row) {
+        return GetCurrNotes()[row];
+    }
+
+    const Note& GetNote(int row) const {
+        return GetCurrNotes()[row];
+    }
+
+    PassBook& m_data;
+
+    static constexpr int NO_GROUPS = -2;
+    static constexpr int ALL_GROUPS = -1;
+    int m_group = NO_GROUPS;
 };
 
 #endif //PASSBOOK_H

@@ -205,8 +205,8 @@ void PassBook::save()
 
     SecureBytes data;
 
-    for(auto &noteList : qAsConst(m_notes)) {
-        for(auto &note : qAsConst(noteList)) {
+    for(auto &noteList : std::as_const(m_notes)) {
+        for(auto &note : std::as_const(noteList)) {
             data += note.source.toUtf8();
             data += SOURCE_END_130;
             data += note.URL.toUtf8();
@@ -256,7 +256,7 @@ void PassBook::setPassword(int g, int row, SecureString &&password)
     m_changed = true;
 }
 
-QModelIndex PassBookModel::groupIndex(const QString &group)
+QModelIndex GroupsModel::groupIndex(const QString &group)
 {
     int i = m_data.m_notes.groupIndex(group);
     return index(i, 0);
@@ -264,64 +264,34 @@ QModelIndex PassBookModel::groupIndex(const QString &group)
 
 // QAbstractTableModel interface
 
-#define is_group !parent.isValid()
-
-QModelIndex PassBookModel::index(int row, int column, const QModelIndex &parent) const
+QModelIndex GroupsModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (!hasIndex(row, column, parent)) {
         return QModelIndex();
     }
 
-    if (is_group) {
-        return createIndex(row, column, noteid{row});
-    } else {
-        noteid parentId {parent.internalId()};
-        int group = parentId.groupIndex();
-        noteid id{group, row};
-        return createIndex(row, column, id);
-    }
+    return createIndex(row, column, noteid{row});
 }
 
-QModelIndex PassBookModel::parent(const QModelIndex &index) const
+QModelIndex GroupsModel::parent(const QModelIndex &index) const
 {
-    if (!index.isValid()) {
-        return QModelIndex();
-    }
-
-    noteid id {index.internalId()};
-    if(id.isGroup()) {
-        return QModelIndex();
-    } else {
-        int group = id.groupIndex();
-        return createIndex(group, 0, noteid{group});
-    }
+    Q_UNUSED(index);
+    return QModelIndex();
 }
 
-int PassBookModel::rowCount(const QModelIndex &parent) const
-{
-    if (is_group) {
-        return m_data.m_notes.size();
-    } else {
-        noteid parentId {parent.internalId()};
-        if(parentId.isGroup()) {
-            int group = parentId.groupIndex();
-            return m_data.m_notes[group].size();
-        } else {
-            return 0;
-        }
-    }
-}
-
-int PassBookModel::columnCount(const QModelIndex &parent) const
+int GroupsModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    if(is_group) {
-        return 1;
-    }
-    return Column::Count;
+    return m_data.m_notes.size();
 }
 
-QVariant PassBookModel::data(const QModelIndex &index, int role) const
+int GroupsModel::columnCount(const QModelIndex &parent) const
+{
+    Q_UNUSED(parent);
+    return 1;
+}
+
+QVariant GroupsModel::data(const QModelIndex &index, int role) const
 {
     if(role == Qt::SizeHintRole) {
         return QSize(100, 23);
@@ -331,17 +301,221 @@ QVariant PassBookModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
 
+    int group = index.row();
+
+    return index.column() == 0 ? m_data.m_notes[group].name() : QVariant();
+}
+
+QVariant GroupsModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    Q_UNUSED(section);
+    Q_UNUSED(orientation);
+    Q_UNUSED(role);
+    return QVariant();
+}
+
+bool GroupsModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    Q_UNUSED(role);
+
+    QString v {value.toString()};
+    int group = index.row();
+
+    m_data.m_notes[group].setName(v);
+
+    emit dataChanged(index, index, {Qt::DisplayRole});
+    m_data.m_changed = true;
+
+    return true;
+}
+
+bool GroupsModel::setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles)
+{
+    if(!roles.contains(Qt::EditRole) && !roles.contains(Qt::DisplayRole)) {
+        return false;
+    }
+
+    const QVariant &value { roles.contains(Qt::EditRole) ? roles[Qt::EditRole] : roles[Qt::DisplayRole] };
+    return setData(index, value);
+}
+
+Qt::ItemFlags GroupsModel::flags(const QModelIndex &index) const
+{
+    Qt::ItemFlags f { QAbstractItemModel::flags(index) | Qt::ItemIsEnabled };
+
     noteid id {index.internalId()};
-    int group = id.groupIndex();
+
+    if(index.isValid()) {
+        f |= Qt::ItemIsDragEnabled;
+    }
+    f |= Qt::ItemIsDropEnabled;
+
+    return f;
+}
+
+bool GroupsModel::insertRows(int row, int count, const QModelIndex &parent)
+{
+    if(row == -1) {
+        row = rowCount(parent);
+    }
+
+    beginInsertRows(parent, row, row + count - 1);
+
+    for(int i = 0; i<count; ++i) {
+        m_data.m_notes.insert(row, NoteList{tr("Group")});
+    }
+
+    endInsertRows();
+
+    m_data.m_changed = true;
+    return true;
+}
+
+bool GroupsModel::removeRows(int row, int count, const QModelIndex &parent)
+{
+    beginRemoveRows(parent, row, row + count - 1);
+
+    for(int i = 0; i<count; ++i) {
+        m_data.m_notes.removeAt(row);
+    }
+
+    endRemoveRows();
+
+    m_data.m_changed = true;
+    return true;
+}
+
+Qt::DropActions GroupsModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+static const QString MIME_TYPE {"application/passbook"};
+
+QStringList GroupsModel::mimeTypes() const
+{
+    return { MIME_TYPE };
+}
+
+QMimeData *GroupsModel::mimeData(const QModelIndexList &indexes) const
+{
+    QMimeData *mimeData = new QMimeData();
+    QByteArray encodedData;
+
+    QDataStream stream(&encodedData, QIODevice::WriteOnly);
+
+    // Actually all indexes should have same noteid (internalId), because they
+    // belong to one dragged row
+    if(indexes.size()) {
+        QModelIndex index = indexes.first();
+        if (index.isValid()) {
+            noteid id {index.internalId()};
+            stream << static_cast<quintptr>(id);
+        }
+    }
+
+    mimeData->setData(MIME_TYPE, encodedData);
+    return mimeData;
+}
+
+bool GroupsModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+{
+    Q_UNUSED(action);
+    Q_UNUSED(column);
+
+    if (!data->hasFormat(MIME_TYPE)) {
+        return false;
+    }
+
+    noteid id;
+    {
+        QByteArray bytes { data->data(MIME_TYPE) };
+        QDataStream stream(&bytes, QIODevice::ReadOnly);
+        quintptr i;
+        stream >> i;
+        id = i;
+    }
+
+    // drop notes to groups
+    if(id.isNote()) {
+        return false;
+    }
+
+    int srcGroup = id.groupIndex();
+
+    // insert to -1 means append to the end
+    if(row == -1) {
+        int last = rowCount(parent)-1;
+        bool lastGroup = id.groupIndex() == last;
+        if(lastGroup) {
+            return false;
+        }
+
+        row = rowCount(parent);
+    }
+
+    if(row == srcGroup) {
+        return false;
+    }
+
+    // move groups
+    beginMoveRows(parent, srcGroup, srcGroup, parent, row);
+    if(row > srcGroup) {
+        --row;
+    }
+    m_data.m_notes.move(srcGroup, row);
+    endMoveRows();
+
+    m_data.m_changed = true;
+
+    // hack: return false to prevent internal removeRow() function call
+    return false;
+}
+
+// QAbstractTableModel interface
+
+QModelIndex PasswordsModel::index(int row, int column, const QModelIndex &parent) const
+{
+    if (!hasIndex(row, column, parent)) {
+        return QModelIndex();
+    }
+
+    noteid id{m_group, row};
+    return createIndex(row, column, id);
+}
+
+QModelIndex PasswordsModel::parent(const QModelIndex &index) const
+{
+    Q_UNUSED(index);
+    return QModelIndex();
+}
+
+int PasswordsModel::rowCount(const QModelIndex &parent) const
+{
+    Q_UNUSED(parent);
+    return GetCurrNotes().size();
+}
+
+int PasswordsModel::columnCount(const QModelIndex &parent) const
+{
+    Q_UNUSED(parent);
+    return Column::Count;
+}
+
+QVariant PasswordsModel::data(const QModelIndex &index, int role) const
+{
+    if(role == Qt::SizeHintRole) {
+        return QSize(100, 23);
+    }
+
+    if(!index.isValid() || (role != Qt::DisplayRole && role != Qt::EditRole)) {
+        return QVariant();
+    }
 
     int row {index.row()};
     int col {index.column()};
 
-    if (id.isGroup()) {
-        return col == 0 ? m_data.m_notes[group].name() : QVariant();
-    }
-
-    const Note &note {m_data.m_notes[group][row]};
+    const Note &note {GetNote(row)};
 
     switch (col) {
         case Column::Name: return note.source;
@@ -352,7 +526,7 @@ QVariant PassBookModel::data(const QModelIndex &index, int role) const
     }
 }
 
-QVariant PassBookModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant PasswordsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(role != Qt::DisplayRole || orientation != Qt::Horizontal) {
         return QVariant();
@@ -378,34 +552,25 @@ static inline bool setField(T &to, const T &from)
     }
 }
 
-bool PassBookModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool PasswordsModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     QString v {value.toString()};
     bool changed = false;
 
-    noteid id {index.internalId()};
-    int group = id.groupIndex();
+    Note &note {GetNote(index.row())};
 
-    if (id.isGroup()) {
-        m_data.m_notes[group].setName(v);
-        changed = true;
-    } else {
-        Note &note {m_data.m_notes[group][index.row()]};
-
-
-        switch (role) {
-            case Qt::DisplayRole:
-            case Qt::EditRole: {
-                switch (index.column()) {
-                    case Column::Name:     changed |= setField(note.source, v); break;
-                    case Column::Url:      changed |= setField(note.URL, v); break;
-                    case Column::Login:    changed |= setField(note.login, v); break;
-                    case Column::Password: changed |= setField(note.password, qvariant_cast<Password>(value)); break;
-                    default: break;
-                }
-            } break;
-            default: break;
-        }
+    switch (role) {
+        case Qt::DisplayRole:
+        case Qt::EditRole: {
+            switch (index.column()) {
+                case Column::Name:     changed |= setField(note.source, v); break;
+                case Column::Url:      changed |= setField(note.URL, v); break;
+                case Column::Login:    changed |= setField(note.login, v); break;
+                case Column::Password: changed |= setField(note.password, qvariant_cast<Password>(value)); break;
+                default: break;
+            }
+        } break;
+        default: break;
     }
 
     if(changed) {
@@ -416,7 +581,7 @@ bool PassBookModel::setData(const QModelIndex &index, const QVariant &value, int
     return changed;
 }
 
-bool PassBookModel::setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles)
+bool PasswordsModel::setItemData(const QModelIndex &index, const QMap<int, QVariant> &roles)
 {
     if(!roles.contains(Qt::EditRole) && !roles.contains(Qt::DisplayRole)) {
         return false;
@@ -426,28 +591,26 @@ bool PassBookModel::setItemData(const QModelIndex &index, const QMap<int, QVaria
     return setData(index, value);
 }
 
-Qt::ItemFlags PassBookModel::flags(const QModelIndex &index) const
+Qt::ItemFlags PasswordsModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags f { QAbstractItemModel::flags(index) | Qt::ItemIsEnabled };
 
     noteid id {index.internalId()};
-    if(id.isNote() || index.column() == Column::Name) {
-        f |=  Qt::ItemIsSelectable | Qt::ItemIsEditable;
-    }
+    f |=  Qt::ItemIsSelectable | Qt::ItemIsEditable;
 
     if(index.isValid()) {
         f |= Qt::ItemIsDragEnabled;
     }
 
     // drop only in groups and in viewport
-    if(!index.isValid() || id.isGroup()) {
+    if(!index.isValid()) {
         f |= Qt::ItemIsDropEnabled;
     }
 
     return f;
 }
 
-bool PassBookModel::insertRows(int row, int count, const QModelIndex &parent)
+bool PasswordsModel::insertRows(int row, int count, const QModelIndex &parent)
 {
     if(row == -1) {
         row = rowCount(parent);
@@ -455,24 +618,12 @@ bool PassBookModel::insertRows(int row, int count, const QModelIndex &parent)
 
     beginInsertRows(parent, row, row + count - 1);
 
-    if(is_group) {
-        for(int i = 0; i<count; ++i) {
-            m_data.m_notes.insert(row, NoteList{tr("Group")});
-        }
-    } else {
-        noteid parentId {parent.internalId()};
-        if(parentId.isNote()) {
-            return false;
-        }
+    NoteList &noteList = GetCurrNotes();
 
-        int group = parentId.groupIndex();
-        NoteList &noteList = m_data.m_notes[group];
-
-        for(int i = 0; i<count; ++i) {
-            Note note;
-            note.password.load(QStringLiteral(""), m_data.m_master);
-            noteList.insert(row, std::move(note));
-        }
+    for(int i = 0; i<count; ++i) {
+        Note note;
+        note.password.load(QStringLiteral(""), m_data.m_master);
+        noteList.insert(row, std::move(note));
     }
 
     endInsertRows();
@@ -481,26 +632,14 @@ bool PassBookModel::insertRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
-bool PassBookModel::removeRows(int row, int count, const QModelIndex &parent)
+bool PasswordsModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     beginRemoveRows(parent, row, row + count - 1);
 
-    if(is_group) {
-        for(int i = 0; i<count; ++i) {
-            m_data.m_notes.removeAt(row);
-        }
-    } else {
-        noteid parentId {parent.internalId()};
-        if(parentId.isNote()) {
-            return false;
-        }
+    NoteList &noteList = GetCurrNotes();
 
-        int group = parentId.groupIndex();
-        NoteList &noteList = m_data.m_notes[group];
-
-        for(int i = 0; i<count; ++i) {
-            noteList.removeAt(row);
-        }
+    for(int i = 0; i<count; ++i) {
+        noteList.removeAt(row);
     }
 
     endRemoveRows();
@@ -509,19 +648,17 @@ bool PassBookModel::removeRows(int row, int count, const QModelIndex &parent)
     return true;
 }
 
-Qt::DropActions PassBookModel::supportedDropActions() const
+Qt::DropActions PasswordsModel::supportedDropActions() const
 {
     return Qt::MoveAction;
 }
 
-static const QString MIME_TYPE {"application/passbook"};
-
-QStringList PassBookModel::mimeTypes() const
+QStringList PasswordsModel::mimeTypes() const
 {
     return { MIME_TYPE };
 }
 
-QMimeData *PassBookModel::mimeData(const QModelIndexList &indexes) const
+QMimeData *PasswordsModel::mimeData(const QModelIndexList &indexes) const
 {
     QMimeData *mimeData = new QMimeData();
     QByteArray encodedData;
@@ -542,7 +679,7 @@ QMimeData *PassBookModel::mimeData(const QModelIndexList &indexes) const
     return mimeData;
 }
 
-bool PassBookModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+bool PasswordsModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
 {
     Q_UNUSED(action);
     Q_UNUSED(column);
@@ -560,25 +697,18 @@ bool PassBookModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
         id = i;
     }
 
-    // drop notes to groups
-    if(is_group && id.isNote()) {
-        return false;
-    }
-
     // drop groups to notes
-    if(!is_group && id.isGroup()) {
+    if(id.isGroup()) {
         return false;
     }
 
-    bool groupsChange = id.isGroup();
-    bool notesChange = id.isNote();
     int srcGroup = id.groupIndex();
     int dstGroup = noteid{parent.internalId()}.groupIndex();
-    bool sameGroup = !groupsChange && srcGroup == dstGroup;
+    bool sameGroup = srcGroup == dstGroup;
 
     // insert to -1 means append to the end
     if(row == -1) {
-        if(sameGroup || groupsChange) {
+        if(sameGroup) {
             int last = rowCount(parent)-1;
             bool lastNote = id.isNote() && id.noteIndex() == last;
             bool lastGroup = id.isGroup() && id.groupIndex() == last;
@@ -590,37 +720,24 @@ bool PassBookModel::dropMimeData(const QMimeData *data, Qt::DropAction action, i
         row = rowCount(parent);
     }
 
-    if(notesChange) {
-        int srcNote = id.noteIndex();
+    int srcNote = id.noteIndex();
 
-        if(sameGroup) {
-            if(row == srcNote) {
-                return false;
-            }
-
-            // move notes within group
-            beginMoveRows(parent, srcNote, srcNote, parent, row);
-            if(row > srcNote) {
-                --row;
-            }
-            m_data.m_notes[dstGroup].move(srcNote, row);
-        } else {
-            // move notes among groups
-            beginMoveRows(index(srcGroup, 0), srcNote, srcNote, parent, row);
-            m_data.m_notes[dstGroup].insert(row, m_data.m_notes[srcGroup][srcNote]);
-            m_data.m_notes[srcGroup].removeAt(srcNote);
-        }
-    } else {
-        if(row == srcGroup) {
+    if(sameGroup) {
+        if(row == srcNote) {
             return false;
         }
 
-        // move groups
-        beginMoveRows(parent, srcGroup, srcGroup, parent, row);
-        if(row > srcGroup) {
+        // move notes within group
+        beginMoveRows(parent, srcNote, srcNote, parent, row);
+        if(row > srcNote) {
             --row;
         }
-        m_data.m_notes.move(srcGroup, row);
+        m_data.m_notes[dstGroup].move(srcNote, row);
+    } else {
+        // move notes among groups
+        beginMoveRows(index(srcGroup, 0), srcNote, srcNote, parent, row);
+        m_data.m_notes[dstGroup].insert(row, m_data.m_notes[srcGroup][srcNote]);
+        m_data.m_notes[srcGroup].removeAt(srcNote);
     }
     endMoveRows();
 
