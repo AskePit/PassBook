@@ -106,8 +106,10 @@ enum_class(Column) {
     Count = End
 } enum_end;
 
-class PassBook : public QAbstractItemModel {
+class PassBook : public QObject {
     Q_OBJECT
+
+    friend class PassBookModel;
 
 public:
     PassBook(const QString &fileName, const Master &master);
@@ -119,9 +121,34 @@ public:
     NoteTree& notes() { return m_notes; }
     SecureString getPassword(int g, int row) const;
     void setPassword(int g, int row, SecureString &&password);
-    QModelIndex groupIndex(const QString &group);
 
-    // QAbstractTableModel interface
+signals:
+    void passwordChanged(int row);
+
+private:
+    bool m_loaded;
+    Master m_master;
+    NoteTree m_notes;
+    QString m_fileName;
+    bool m_changed;
+
+    void backupFile();
+};
+
+class PassBookModel : public QAbstractItemModel {
+    Q_OBJECT
+
+public:
+    PassBookModel(PassBook& data)
+        : m_data(data)
+    {
+        QObject::connect(&m_data, &PassBook::passwordChanged, this, [this](int row){
+            QModelIndex idx {index(row, Column::Password)};
+            emit dataChanged(idx, idx, {Qt::DecorationRole});
+        });
+    }
+
+    QModelIndex groupIndex(const QString &group);
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &index) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -138,15 +165,8 @@ public:
     QStringList mimeTypes() const override;
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
-
 private:
-    bool m_loaded;
-    Master m_master;
-    NoteTree m_notes;
-    QString m_fileName;
-    bool m_changed;
-
-    void backupFile();
+    PassBook& m_data;
 };
 
 #endif //PASSBOOK_H

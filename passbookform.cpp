@@ -83,6 +83,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::PassBookForm)
     , m_passBook(passBook)
+    , m_passBookModel(new PassBookModel(*passBook))
     , m_passBookDelegate(new PassBookDelegate)
     , m_closeWithBack(false)
 {
@@ -99,8 +100,8 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     ui->passTable->viewport()->setMouseTracking(true);
     ui->passTable->viewport()->installEventFilter(filter);
 
-    ui->groupList->setModel(m_passBook);
-    ui->passTable->setModel(m_passBook);
+    ui->groupList->setModel(m_passBookModel);
+    ui->passTable->setModel(m_passBookModel);
 
     connect(ui->groupList->selectionModel(), &QItemSelectionModel::currentChanged, [this](const QModelIndex &curr, const QModelIndex &prev) {
         Q_UNUSED(prev);
@@ -122,7 +123,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
         checkListSelection(curr);
         checkTableSelection(curr);
     });
-    ui->groupList->setCurrentIndex(m_passBook->index(0, 0));
+    ui->groupList->setCurrentIndex(m_passBookModel->index(0, 0));
 
     connect(ui->passTable->selectionModel(), &QItemSelectionModel::currentChanged, [this](const QModelIndex &curr, const QModelIndex &prev) {
         Q_UNUSED(prev);
@@ -180,33 +181,35 @@ PassBookForm::~PassBookForm()
     QClipboard *clipboard { QApplication::clipboard() };
     clipboard->clear();
     delete m_passBook;
+    delete m_passBookModel;
+    delete m_passBookDelegate;
     delete ui;
 }
 
 void PassBookForm::on_addPassButton_clicked()
 {
     auto groupIndex = ui->groupList->currentIndex();
-    m_passBook->insertRow(m_passBook->rowCount(groupIndex), groupIndex);
+    m_passBookModel->insertRow(m_passBookModel->rowCount(groupIndex), groupIndex);
 }
 
 void PassBookForm::on_deletePassButton_clicked()
 {
     QModelIndex index { ui->passTable->currentIndex() };
-    m_passBook->removeRow(index.row(), index.parent());
+    m_passBookModel->removeRow(index.row(), index.parent());
 }
 
 void PassBookForm::on_addGroupButton_clicked()
 {
-    int i = m_passBook->rowCount();
-    m_passBook->insertRow(i);
+    int i = m_passBookModel->rowCount();
+    m_passBookModel->insertRow(i);
     ui->groupList->clearSelection();
-    ui->groupList->selectionModel()->setCurrentIndex(m_passBook->index(i, 0), QItemSelectionModel::Select);
+    ui->groupList->selectionModel()->setCurrentIndex(m_passBookModel->index(i, 0), QItemSelectionModel::Select);
 }
 
 void PassBookForm::on_deleteGroupButton_clicked()
 {
     QModelIndex index { ui->groupList->currentIndex() };
-    m_passBook->removeRow(index.row(), index.parent());
+    m_passBookModel->removeRow(index.row(), index.parent());
 }
 
 void PassBookForm::save()
@@ -242,7 +245,7 @@ void PassBookForm::checkTableSelection(const QModelIndex& idx)
 void PassBookForm::checkListSelection(const QModelIndex& idx)
 {
     Q_UNUSED(idx);
-    ui->deleteGroupButton->setEnabled(/*m_passBook->notes().size()*/idx.isValid());
+    ui->deleteGroupButton->setEnabled(idx.isValid());
 }
 
 void PassBookForm::callTableContextMenu(const QPoint &point)
@@ -290,7 +293,7 @@ void PassBookForm::deselectPass()
 
 void PassBookForm::saveCurrentGroup()
 {
-    QVariant group = m_passBook->data(ui->groupList->currentIndex());
+    QVariant group = m_passBookModel->data(ui->groupList->currentIndex());
     iniSettings.setValue("CurrentGroup", group);
 }
 
@@ -301,7 +304,7 @@ void PassBookForm::restoreCurrentGroup()
         return;
     }
 
-    QModelIndex i = m_passBook->groupIndex(group);
+    QModelIndex i = m_passBookModel->groupIndex(group);
     ui->groupList->setCurrentIndex(i);
 }
 
@@ -347,23 +350,23 @@ void PassBookForm::on_actionGeneratePassword_triggered()
 void PassBookForm::on_actionInsertPassAbove_triggered()
 {
     QModelIndex index { ui->passTable->currentIndex() };
-    m_passBook->insertRow(index.row(), index.parent());
+    m_passBookModel->insertRow(index.row(), index.parent());
 }
 
 void PassBookForm::on_actionInsertPassBelow_triggered()
 {
     QModelIndex index { ui->passTable->currentIndex() };
-    m_passBook->insertRow(index.row()+1, index.parent());
+    m_passBookModel->insertRow(index.row()+1, index.parent());
 }
 
 void PassBookForm::on_actionInsertGroupAbove_triggered()
 {
     QModelIndex index { ui->groupList->currentIndex() };
-    m_passBook->insertRow(index.row(), index.parent());
+    m_passBookModel->insertRow(index.row(), index.parent());
 }
 
 void PassBookForm::on_actionInsertGroupBelow_triggered()
 {
     QModelIndex index { ui->groupList->currentIndex() };
-    m_passBook->insertRow(index.row()+1, index.parent());
+    m_passBookModel->insertRow(index.row()+1, index.parent());
 }

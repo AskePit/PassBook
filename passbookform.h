@@ -6,6 +6,7 @@
 #include <QSettings>
 
 class PassBook;
+class PassBookModel;
 
 namespace Ui {
 class PassBookForm;
@@ -87,6 +88,7 @@ private:
     Ui::PassBookForm *ui;
 
     PassBook* m_passBook;
+    PassBookModel* m_passBookModel;
     PassBookDelegate *m_passBookDelegate;
 
     bool m_closeWithBack;
