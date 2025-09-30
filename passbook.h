@@ -180,7 +180,9 @@ public:
     }
 
     void setGroup(int group) {
+        beginResetModel();
         m_group = group;
+        endResetModel();
     }
 
     void setAllGroups() {
@@ -189,10 +191,6 @@ public:
 
     void setNoGroups() {
         m_group = NO_GROUPS;
-    }
-
-    void invalidate() {
-        emit dataChanged(index(0, 0), index(GetCurrNotes().size(), Column::Count));
     }
 
     QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
@@ -212,20 +210,22 @@ public:
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 private:
-    NoteList& GetCurrNotes() {
-        return m_data.m_notes[m_group];
+    NoteList* GetCurrNotes() {
+        return m_group >= 0 ? &m_data.m_notes[m_group] : nullptr;
     }
 
-    const NoteList& GetCurrNotes() const {
-        return m_data.m_notes[m_group];
+    const NoteList* GetCurrNotes() const {
+        return m_group >= 0 ? &m_data.m_notes[m_group] : nullptr;
     }
 
-    Note& GetNote(int row) {
-        return GetCurrNotes()[row];
+    Note* GetNote(int row) {
+        NoteList* notes = GetCurrNotes();
+        return notes ? &(*notes)[row] : nullptr;
     }
 
-    const Note& GetNote(int row) const {
-        return GetCurrNotes()[row];
+    const Note* GetNote(int row) const {
+        const NoteList* notes = GetCurrNotes();
+        return notes ? &(*notes)[row] : nullptr;
     }
 
     PassBook& m_data;

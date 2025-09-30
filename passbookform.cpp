@@ -108,7 +108,6 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
         Q_UNUSED(prev);
         if(curr.isValid()) {
             m_passwordsModel->setGroup(curr.row());
-            m_passwordsModel->invalidate();
             if(!ui->passTable->isEnabled()) {
                 ui->passTable->setEnabled(true);
                 for(int c = 0; c<Column::Count; ++c) {

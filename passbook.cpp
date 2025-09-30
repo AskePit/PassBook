@@ -476,7 +476,8 @@ bool GroupsModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int
 
 QModelIndex PasswordsModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!hasIndex(row, column, parent)) {
+    Q_UNUSED(parent);
+    if (m_group < 0) {
         return QModelIndex();
     }
 
@@ -493,7 +494,8 @@ QModelIndex PasswordsModel::parent(const QModelIndex &index) const
 int PasswordsModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return GetCurrNotes().size();
+    const NoteList* notes = GetCurrNotes();
+    return notes ? notes->count() : 0;
 }
 
 int PasswordsModel::columnCount(const QModelIndex &parent) const
@@ -515,13 +517,16 @@ QVariant PasswordsModel::data(const QModelIndex &index, int role) const
     int row {index.row()};
     int col {index.column()};
 
-    const Note &note {GetNote(row)};
+    const Note* note {GetNote(row)};
+    if (!note) {
+        return QVariant();
+    }
 
     switch (col) {
-        case Column::Name: return note.source;
-        case Column::Url: return note.URL;
-        case Column::Login: return note.login;
-        case Column::Password: return QVariant::fromValue(note.password);
+        case Column::Name: return note->source;
+        case Column::Url: return note->URL;
+        case Column::Login: return note->login;
+        case Column::Password: return QVariant::fromValue(note->password);
         default: return QVariant();
     }
 }
@@ -557,16 +562,19 @@ bool PasswordsModel::setData(const QModelIndex &index, const QVariant &value, in
     QString v {value.toString()};
     bool changed = false;
 
-    Note &note {GetNote(index.row())};
+    Note* note {GetNote(index.row())};
+    if (!note) {
+        return false;
+    }
 
     switch (role) {
         case Qt::DisplayRole:
         case Qt::EditRole: {
             switch (index.column()) {
-                case Column::Name:     changed |= setField(note.source, v); break;
-                case Column::Url:      changed |= setField(note.URL, v); break;
-                case Column::Login:    changed |= setField(note.login, v); break;
-                case Column::Password: changed |= setField(note.password, qvariant_cast<Password>(value)); break;
+                case Column::Name:     changed |= setField(note->source, v); break;
+                case Column::Url:      changed |= setField(note->URL, v); break;
+                case Column::Login:    changed |= setField(note->login, v); break;
+                case Column::Password: changed |= setField(note->password, qvariant_cast<Password>(value)); break;
                 default: break;
             }
         } break;
@@ -595,7 +603,6 @@ Qt::ItemFlags PasswordsModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags f { QAbstractItemModel::flags(index) | Qt::ItemIsEnabled };
 
-    noteid id {index.internalId()};
     f |=  Qt::ItemIsSelectable | Qt::ItemIsEditable;
 
     if(index.isValid()) {
@@ -618,12 +625,15 @@ bool PasswordsModel::insertRows(int row, int count, const QModelIndex &parent)
 
     beginInsertRows(parent, row, row + count - 1);
 
-    NoteList &noteList = GetCurrNotes();
+    NoteList* noteList = GetCurrNotes();
+    if (!noteList) {
+        return false;
+    }
 
     for(int i = 0; i<count; ++i) {
         Note note;
         note.password.load(QStringLiteral(""), m_data.m_master);
-        noteList.insert(row, std::move(note));
+        noteList->insert(row, std::move(note));
     }
 
     endInsertRows();
@@ -636,10 +646,13 @@ bool PasswordsModel::removeRows(int row, int count, const QModelIndex &parent)
 {
     beginRemoveRows(parent, row, row + count - 1);
 
-    NoteList &noteList = GetCurrNotes();
+    NoteList* noteList = GetCurrNotes();
+    if (!noteList) {
+        return false;
+    }
 
     for(int i = 0; i<count; ++i) {
-        noteList.removeAt(row);
+        noteList->removeAt(row);
     }
 
     endRemoveRows();
