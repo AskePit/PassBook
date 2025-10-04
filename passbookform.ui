@@ -233,6 +233,24 @@ QListView::item:selected {
       <widget class="QWidget" name="passLayoutWidget">
        <layout class="QVBoxLayout" name="passLayout">
         <item>
+         <layout class="QHBoxLayout" name="filterLayout">
+          <item>
+           <widget class="QLineEdit" name="filterLineEdit">
+            <property name="placeholderText">
+             <string>Search...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="filterInGroupCheckBox">
+            <property name="text">
+             <string>In Group</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <widget class="QTableView" name="passTable">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">

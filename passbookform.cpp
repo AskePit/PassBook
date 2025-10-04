@@ -83,8 +83,9 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::PassBookForm)
     , m_passBook(passBook)
-    , m_groupsModel(new GroupsModel(*passBook))
-    , m_passwordsModel(new PasswordsModel(*passBook))
+    , m_groupsModel(new GroupsModel(*passBook, this))
+    , m_passwordsModel(new PasswordsModel(*passBook, this))
+    , m_passwordsFilterModel(new PasswordsFilterModel(m_passwordsModel, this))
     , m_passBookDelegate(new PassBookDelegate)
     , m_closeWithBack(false)
 {
@@ -102,7 +103,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     ui->passTable->viewport()->installEventFilter(filter);
 
     ui->groupList->setModel(m_groupsModel);
-    ui->passTable->setModel(m_passwordsModel);
+    ui->passTable->setModel(m_passwordsFilterModel);
 
     connect(ui->groupList->selectionModel(), &QItemSelectionModel::currentChanged, this, [this](const QModelIndex &curr, const QModelIndex &prev) {
         Q_UNUSED(prev);
@@ -372,3 +373,14 @@ void PassBookForm::on_actionInsertGroupBelow_triggered()
     QModelIndex index { ui->groupList->currentIndex() };
     m_groupsModel->insertRow(index.row()+1, index.parent());
 }
+
+void PassBookForm::on_filterLineEdit_textEdited(const QString &arg1)
+{
+
+}
+
+void PassBookForm::on_filterInGroupCheckBox_toggled(bool checked)
+{
+
+}
+

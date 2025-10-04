@@ -3,6 +3,7 @@
 
 #include "securetypes.h"
 #include <QAbstractItemModel>
+#include <QSortFilterProxyModel>
 #include <vector>
 #include <span>
 #include <algorithm>
@@ -128,8 +129,9 @@ class GroupsModel : public QAbstractItemModel {
     Q_OBJECT
 
 public:
-    GroupsModel(PassBook& data)
-        : m_data(data)
+    GroupsModel(PassBook& data, QObject *parent = nullptr)
+        : QAbstractItemModel(parent)
+        , m_data(data)
     {
     }
 
@@ -158,8 +160,9 @@ class PasswordsModel : public QAbstractItemModel {
     Q_OBJECT
 
 public:
-    PasswordsModel(PassBook& data)
-        : m_data(data)
+    PasswordsModel(PassBook& data, QObject *parent = nullptr)
+        : QAbstractItemModel(parent)
+        , m_data(data)
     {
         QObject::connect(&m_data, &PassBook::passwordChanged, this, [this](int row){
             QModelIndex idx {index(row, Column::Password)};
@@ -223,6 +226,17 @@ private:
     PassBook& m_data;
 
     size_t m_group = NO_GROUPS;
+};
+
+class PasswordsFilterModel : public QSortFilterProxyModel {
+    Q_OBJECT
+
+public:
+    PasswordsFilterModel(PasswordsModel* sourceModel, QObject *parent = nullptr)
+        : QSortFilterProxyModel(parent)
+    {
+        setSourceModel(sourceModel);
+    }
 };
 
 #endif //PASSBOOK_H

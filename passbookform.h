@@ -8,6 +8,7 @@
 class PassBook;
 class GroupsModel;
 class PasswordsModel;
+class PasswordsFilterModel;
 
 namespace Ui {
 class PassBookForm;
@@ -73,6 +74,8 @@ private slots:
     void on_actionInsertPassBelow_triggered();
     void on_actionInsertGroupAbove_triggered();
     void on_actionInsertGroupBelow_triggered();
+    void on_filterLineEdit_textEdited(const QString &arg1);
+    void on_filterInGroupCheckBox_toggled(bool checked);
 
     void save();
     void doubleClickReact(const QModelIndex& idx);
@@ -91,7 +94,8 @@ private:
     PassBook* m_passBook;
     GroupsModel* m_groupsModel;
     PasswordsModel* m_passwordsModel;
-    PassBookDelegate *m_passBookDelegate;
+    PasswordsFilterModel* m_passwordsFilterModel;
+    PassBookDelegate* m_passBookDelegate;
 
     bool m_closeWithBack;
 };
