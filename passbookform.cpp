@@ -343,8 +343,9 @@ void PassBookForm::on_actionEditPassword_triggered()
 
 void PassBookForm::on_actionGeneratePassword_triggered()
 {
-    QModelIndex index { ui->passTable->currentIndex() };
-    KeyGenDialog *d { new KeyGenDialog{*m_passBook, index.parent().row(), index.row()} };
+    QModelIndex groupIndex { ui->groupList->currentIndex() };
+    QModelIndex noteIndex { ui->passTable->currentIndex() };
+    KeyGenDialog *d { new KeyGenDialog{*m_passBook, groupIndex.row(), noteIndex.row()} };
     d->show();
 }
 

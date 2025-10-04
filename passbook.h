@@ -3,6 +3,9 @@
 
 #include "securetypes.h"
 #include <QAbstractItemModel>
+#include <vector>
+#include <span>
+#include <algorithm>
 
 //! Single password note
 struct Note
@@ -13,62 +16,45 @@ struct Note
     Password password;
 };
 
-//! Named list of password notes (password group)
-class NoteList : public QList<Note>
+static constexpr size_t ALL_GROUPS = std::numeric_limits<size_t>::max();
+static constexpr size_t NO_GROUPS = ALL_GROUPS - 1;
+
+class NotesStorage
 {
 public:
-    NoteList()
-        : QList<Note>()
-    {}
+    std::span<Note> getNotes(const QString& group = QString());
+    std::span<Note> getNotes(size_t groupIndex);
+    std::span<const Note> getNotes(size_t groupIndex) const;
+    const Note& getNote(size_t g, size_t n) const;
+    Note& getNote(size_t g, size_t n);
 
-    NoteList(const QString &name)
-        : QList<Note>()
-        , m_name(name)
-    {}
+    const std::vector<QString>& getGroups() const;
+    size_t getGroupIndex(const QString& group) const;
+    size_t groupsCount() const;
+    size_t notesCount() const;
+    bool isEmpty() const;
 
-    const QString &name() const { return m_name; }
-    void setName(const QString &name) { m_name = name; }
+    const QString& getGroupName(size_t index) const;
+    void setGroupName(size_t index, const QString& name);
+
+    void appendGroup(QString&& name, std::vector<Note>&& notes);
+    void insertGroup(size_t row, QString&& name);
+    void removeGroup(size_t row);
+    void moveGroup(size_t src, size_t dst);
+    void appendNote(size_t groupIndex, Note&& note);
+    void insertNote(size_t groupIndex, size_t noteIndex, Note&& note);
+    void removeNote(size_t groupIndex, size_t noteIndex);
+    void moveNoteInGroup(size_t groupIndex, size_t src, size_t dst);
+    void moveNoteBetweenGroups(size_t srcGroup, size_t srcNote, size_t dstGroup, size_t dstNote = std::numeric_limits<size_t>::max());
 
 private:
-    QString m_name;
-};
+    // range is [start; end)
+    std::pair<size_t, size_t> getGroupRange(size_t groupIndex) const;
+    std::span<Note> getNotesImpl(size_t groupIndex);
 
-//! List of password groups
-class NoteTree : public QList<NoteList>
-{
-public:
-    const NoteList *operator[](const QString &group) const {
-        for(auto &list : *this) {
-            if(list.name() == group) {
-                return &list;
-            }
-        }
-        return nullptr;
-    }
-
-    NoteList *operator[](const QString &group) {
-        for(auto &list : *this) {
-            if(list.name() == group) {
-                return &list;
-            }
-        }
-        return nullptr;
-    }
-
-    int groupIndex(const QString &group) {
-        int i = 0;
-        for(auto &list : std::as_const(*this)) {
-            if(list.name() == group) {
-                return i;
-            }
-            ++i;
-        }
-
-        return -1;
-    }
-
-    NoteList &operator[](int i) { return QList::operator [](i); }
-    const NoteList &operator[](int i) const { return QList::operator [](i); }
+    std::vector<Note> m_notes;
+    std::vector<size_t> m_groupEnds;
+    std::vector<QString> m_groupNames;
 };
 
 class noteid
@@ -119,7 +105,7 @@ public:
     bool load();
     void save();
     bool wasChanged() { return m_changed; }
-    NoteTree& notes() { return m_notes; }
+    NotesStorage& notes() { return m_notes; }
     SecureString getPassword(int g, int row) const;
     void setPassword(int g, int row, SecureString &&password);
 
@@ -129,7 +115,7 @@ signals:
 private:
     bool m_loaded;
     Master m_master;
-    NoteTree m_notes;
+    NotesStorage m_notes;
     QString m_fileName;
     bool m_changed;
 
@@ -210,29 +196,27 @@ public:
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 private:
-    NoteList* GetCurrNotes() {
-        return m_group >= 0 ? &m_data.m_notes[m_group] : nullptr;
+    std::span<Note> GetCurrNotes() {
+        return m_data.m_notes.getNotes(m_group);
     }
 
-    const NoteList* GetCurrNotes() const {
-        return m_group >= 0 ? &m_data.m_notes[m_group] : nullptr;
+    std::span<Note> GetCurrNotes() const {
+        return m_data.m_notes.getNotes(m_group);
     }
 
     Note* GetNote(int row) {
-        NoteList* notes = GetCurrNotes();
-        return notes ? &(*notes)[row] : nullptr;
+        std::span<Note> notes = GetCurrNotes();
+        return row < notes.size() ? &notes[row] : nullptr;
     }
 
     const Note* GetNote(int row) const {
-        const NoteList* notes = GetCurrNotes();
-        return notes ? &(*notes)[row] : nullptr;
+        std::span<Note> notes = GetCurrNotes();
+        return row < notes.size() ? &notes[row] : nullptr;
     }
 
     PassBook& m_data;
 
-    static constexpr int NO_GROUPS = -2;
-    static constexpr int ALL_GROUPS = -1;
-    int m_group = NO_GROUPS;
+    size_t m_group = NO_GROUPS;
 };
 
 #endif //PASSBOOK_H

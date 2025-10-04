@@ -3,6 +3,8 @@ QT += core gui widgets
 TARGET = passbook
 TEMPLATE = app
 
+CONFIG += c++20
+
 SOURCES += main.cpp\
     passbook.cpp \
     passbookform.cpp \
