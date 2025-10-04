@@ -374,13 +374,22 @@ void PassBookForm::on_actionInsertGroupBelow_triggered()
     m_groupsModel->insertRow(index.row()+1, index.parent());
 }
 
-void PassBookForm::on_filterLineEdit_textEdited(const QString &arg1)
+void PassBookForm::on_filterLineEdit_textEdited(const QString &filterString)
 {
+    const bool stayInGroup = ui->filterInGroupCheckBox->isChecked();
 
+    if (filterString.isEmpty() || stayInGroup) {
+        m_passwordsModel->setGroup(ui->groupList->currentIndex().row());
+    } else {
+        m_passwordsModel->setGroup(ALL_GROUPS);
+    }
+
+    m_passwordsFilterModel->setFilterString(filterString);
 }
 
 void PassBookForm::on_filterInGroupCheckBox_toggled(bool checked)
 {
-
+    Q_UNUSED(checked);
+    on_filterLineEdit_textEdited(ui->filterLineEdit->text());
 }
 

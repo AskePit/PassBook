@@ -1035,3 +1035,92 @@ bool PasswordsModel::dropMimeData(const QMimeData *data, Qt::DropAction action, 
     // hack: return false to prevent internal removeRow() function call
     return false;
 }
+
+bool PasswordsFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+    if (!isFiltered()) {
+        return true;
+    }
+
+    //qDebug() << "filterAcceptsRow";
+
+    auto *model = sourceModel();
+    return m_filteredItems.contains(model->index(sourceRow, getFilterColumn(), sourceParent));
+}
+
+void PasswordsFilterModel::setFilterString(const QString& filterString) {
+    m_filterString = filterString.toLower();
+    //qDebug() << "set filter:" << m_filterString;
+
+    m_timer.stop();
+    m_timer.start(500);
+}
+
+void PasswordsFilterModel::doFilterWork() {
+    m_filteredItems.clear();
+    m_mostMatched = QModelIndex();
+
+    if(!isFiltered()) {
+        invalidateFilter();
+        emit filterCanceled();
+        return;
+    }
+
+    auto *model = sourceModel();
+    for(int r = 0; r<model->rowCount(QModelIndex()); ++r) {
+        QModelIndex index = model->index(r, getFilterColumn(), QModelIndex());
+        if (filterPass(index)) {
+            m_filteredItems.insert(index);
+        }
+    }
+
+    invalidateFilter();
+    emit filtered();
+}
+
+static int levenshteinDistance(const QString& s1, const QString& s2) {
+    const int len1 = static_cast<int>(s1.size()), len2 = static_cast<int>(s2.size());
+    std::vector<int> v0(len2 + 1), v1(len2 + 1);
+
+    for (int i = 0; i <= len2; ++i) {
+        v0[i] = i;
+    }
+
+    for (int i = 0; i < len1; ++i) {
+        v1[0] = i + 1;
+
+        for (int j = 0; j < len2; ++j) {
+            int cost = (s1[i] == s2[j]) ? 0 : 1;
+            v1[j + 1] = std::min({ v1[j] + 1, v0[j + 1] + 1, v0[j] + cost });
+        }
+
+        std::swap(v0, v1);
+    }
+
+    return v0[len2];
+}
+
+bool PasswordsFilterModel::filterPass(QModelIndex currIndex) {
+    if (!currIndex.isValid()) {
+        return false;
+    }
+
+    auto *model = sourceModel();
+    const QString& itemString = model->data(currIndex).toString();
+
+    if (m_filterString.size() > 1) {
+        if (itemString.startsWith(m_filterString, Qt::CaseInsensitive)) {
+            return true;
+        }
+    }
+
+    return levenshteinDistance(m_filterString, itemString.toLower()) < 3;
+}
+
+bool PasswordsFilterModel::isFiltered() const {
+    return !m_filterString.isEmpty();
+}
+
+constexpr int PasswordsFilterModel::getFilterColumn() const {
+    return Column::Name;
+}

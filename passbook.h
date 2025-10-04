@@ -4,6 +4,7 @@
 #include "securetypes.h"
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
+#include <QTimer>
 #include <vector>
 #include <span>
 #include <algorithm>
@@ -171,6 +172,9 @@ public:
     }
 
     void setGroup(size_t group) {
+        if (group == m_group) {
+            return;
+        }
         beginResetModel();
         m_group = group;
         endResetModel();
@@ -236,7 +240,29 @@ public:
         : QSortFilterProxyModel(parent)
     {
         setSourceModel(sourceModel);
+
+        m_timer.callOnTimeout([this](){
+            doFilterWork();
+        });
     }
+
+    void setFilterString(const QString& filterString);
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
+
+Q_SIGNALS:
+    void filtered();
+    void filterCanceled();
+
+private:
+    void doFilterWork();
+    bool filterPass(QModelIndex currIndex);
+    bool isFiltered() const;
+    constexpr int getFilterColumn() const;
+
+    QString m_filterString;
+    QTimer m_timer;
+    QSet<QModelIndex> m_filteredItems;
+    QModelIndex m_mostMatched;
 };
 
 #endif //PASSBOOK_H

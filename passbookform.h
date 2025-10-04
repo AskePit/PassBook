@@ -74,7 +74,7 @@ private slots:
     void on_actionInsertPassBelow_triggered();
     void on_actionInsertGroupAbove_triggered();
     void on_actionInsertGroupBelow_triggered();
-    void on_filterLineEdit_textEdited(const QString &arg1);
+    void on_filterLineEdit_textEdited(const QString &filterString);
     void on_filterInGroupCheckBox_toggled(bool checked);
 
     void save();
