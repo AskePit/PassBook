@@ -142,7 +142,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     connect(ui->groupList, &QListView::customContextMenuRequested, this, &PassBookForm::callGroupsContextMenu);
     connect(ui->passTable, &QTableView::customContextMenuRequested, this, &PassBookForm::callTableContextMenu);
 
-    ui->passTable->setFocus();
+    ui->filterLineEdit->setFocus();
 
     connect(filter, &TableEventFilter::tableHover, this, [this](QMouseEvent *event) {
         int c { ui->passTable->columnAt(event->position().x()) };
@@ -227,12 +227,13 @@ void PassBookForm::on_backButton_clicked()
 
 void PassBookForm::doubleClickReact(const QModelIndex& idx)
 {
-    if(idx.parent().isValid() && idx.column() == Column::Password) {
+    QModelIndex index = m_passwordsFilterModel->mapToSource(idx);
+    if(index.column() == Column::Password) {
         m_passBookDelegate->informDoubleClicked();
         QClipboard *clipboard { QApplication::clipboard() };
 
-        noteid id {idx.internalId()};
-        SecureString &&pass { m_passBook->getPassword(id.groupIndex(), idx.row()) };
+        size_t group = m_passwordsModel->getGroup();
+        SecureString &&pass { m_passBook->getPassword(group, index.row()) };
         clipboard->setText( QString{std::move(pass)} );
     }
 }
@@ -344,9 +345,8 @@ void PassBookForm::on_actionEditPassword_triggered()
 
 void PassBookForm::on_actionGeneratePassword_triggered()
 {
-    QModelIndex groupIndex { ui->groupList->currentIndex() };
-    QModelIndex noteIndex { ui->passTable->currentIndex() };
-    KeyGenDialog *d { new KeyGenDialog{*m_passBook, groupIndex.row(), noteIndex.row()} };
+    QModelIndex noteIndex { m_passwordsFilterModel->mapToSource(ui->passTable->currentIndex()) };
+    KeyGenDialog *d { new KeyGenDialog{*m_passBook, m_passwordsModel->getGroup(), static_cast<size_t>(noteIndex.row())} };
     d->show();
 }
 
@@ -380,8 +380,12 @@ void PassBookForm::on_filterLineEdit_textEdited(const QString &filterString)
 
     if (filterString.isEmpty() || stayInGroup) {
         m_passwordsModel->setGroup(ui->groupList->currentIndex().row());
+        ui->addPassButton->setEnabled(true);
+        ui->deletePassButton->setEnabled(true);
     } else {
         m_passwordsModel->setGroup(ALL_GROUPS);
+        ui->addPassButton->setEnabled(false);
+        ui->deletePassButton->setEnabled(false);
     }
 
     m_passwordsFilterModel->setFilterString(filterString);

@@ -110,8 +110,8 @@ public:
     void save();
     bool wasChanged() { return m_changed; }
     NotesStorage& notes() { return m_notes; }
-    SecureString getPassword(int g, int row) const;
-    void setPassword(int g, int row, SecureString &&password);
+    SecureString getPassword(size_t g, size_t row) const;
+    void setPassword(size_t g, size_t row, SecureString &&password);
 
 signals:
     void passwordChanged(int row);
@@ -169,6 +169,10 @@ public:
             QModelIndex idx {index(row, Column::Password)};
             emit dataChanged(idx, idx, {Qt::DecorationRole});
         });
+    }
+
+    size_t getGroup() const {
+        return m_group;
     }
 
     void setGroup(size_t group) {

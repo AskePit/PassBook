@@ -14,7 +14,7 @@ class KeyGenDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit KeyGenDialog(PassBook &passBook, int group, int row, QWidget *parent = 0);
+    explicit KeyGenDialog(PassBook &passBook, size_t group, size_t row, QWidget *parent = 0);
     ~KeyGenDialog();
 
 private slots:
@@ -25,8 +25,8 @@ private:
     Ui::KeyGenDialog *ui;
 
     PassBook &m_passBook;
-    int m_group;
-    int m_row;
+    size_t m_group;
+    size_t m_row;
 };
 
 #endif // KEYGENDIALOG_H

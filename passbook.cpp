@@ -216,7 +216,6 @@ void NotesStorage::moveNoteInGroup(size_t groupIndex, size_t src, size_t dst)
 
 void NotesStorage::moveNoteBetweenGroups(size_t srcGroup, size_t srcNote, size_t dstGroup, size_t dstNote)
 {
-
     if (srcGroup >= m_groupNames.size() || dstGroup >= m_groupNames.size()) {
         return; // invalid
     }
@@ -539,16 +538,16 @@ void PassBook::save()
     m_changed = false;
 }
 
-SecureString PassBook::getPassword(int g, int row) const
+SecureString PassBook::getPassword(size_t g, size_t row) const
 {
     return m_notes.getNote(g, row).password.get();
 }
 
-void PassBook::setPassword(int g, int row, SecureString &&password)
+void PassBook::setPassword(size_t g, size_t row, SecureString &&password)
 {
     m_notes.getNote(g, row).password.load(std::move(password), m_master);
 
-    emit passwordChanged(row);
+    emit passwordChanged(static_cast<int>(row));
     m_changed = true;
 }
 

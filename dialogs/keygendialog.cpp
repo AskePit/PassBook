@@ -4,7 +4,7 @@
 #include "passbook.h"
 #include "utils.h"
 
-KeyGenDialog::KeyGenDialog(PassBook &passBook, int group, int row, QWidget *parent)
+KeyGenDialog::KeyGenDialog(PassBook &passBook, size_t group, size_t row, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::KeyGenDialog)
     , m_passBook(passBook)
