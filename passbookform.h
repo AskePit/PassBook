@@ -76,6 +76,7 @@ private slots:
     void on_actionInsertGroupBelow_triggered();
     void on_filterLineEdit_textEdited(const QString &filterString);
     void on_filterInGroupCheckBox_toggled(bool checked);
+    void on_filterResetButton_clicked();
 
     void save();
     void doubleClickReact(const QModelIndex& idx);

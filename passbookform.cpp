@@ -393,3 +393,10 @@ void PassBookForm::on_filterInGroupCheckBox_toggled(bool checked)
     on_filterLineEdit_textEdited(ui->filterLineEdit->text());
 }
 
+
+void PassBookForm::on_filterResetButton_clicked()
+{
+    ui->filterLineEdit->clear();
+    on_filterLineEdit_textEdited(ui->filterLineEdit->text());
+}
+

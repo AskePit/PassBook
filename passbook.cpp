@@ -1053,7 +1053,7 @@ void PasswordsFilterModel::setFilterString(const QString& filterString) {
     //qDebug() << "set filter:" << m_filterString;
 
     m_timer.stop();
-    m_timer.start(500);
+    m_timer.start(250);
 }
 
 void PasswordsFilterModel::doFilterWork() {

@@ -242,6 +242,27 @@ QListView::item:selected {
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="filterResetButton">
+            <property name="maximumSize">
+             <size>
+              <width>15</width>
+              <height>15</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>7</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>x</string>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="filterInGroupCheckBox">
             <property name="text">
              <string>In Group</string>
