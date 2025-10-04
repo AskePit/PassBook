@@ -44,6 +44,22 @@ size_t NotesStorage::getGroupIndex(const QString& group) const
     return std::distance(m_groupNames.begin(), it);
 }
 
+size_t NotesStorage::getGroupIndex(size_t groupIndex, size_t noteIndex) const
+{
+    if (groupIndex == NO_GROUPS) {
+        return 0;
+    } else if (groupIndex == ALL_GROUPS) {
+        for (int i = 0; i < m_groupEnds.size(); ++i) {
+            if (noteIndex < m_groupEnds[i]) {
+                return i;
+            }
+        }
+        return NO_GROUPS;
+    } else {
+        return groupIndex;
+    }
+}
+
 const QString& NotesStorage::getGroupName(size_t index) const
 {
     return m_groupNames[index];
@@ -59,9 +75,9 @@ size_t NotesStorage::groupsCount() const
     return m_groupNames.size();
 }
 
-size_t NotesStorage::notesCount() const
+size_t NotesStorage::notesCount(size_t groupIndex) const
 {
-    return m_notes.size();
+    return getNotes(groupIndex).size();
 }
 
 bool NotesStorage::isEmpty() const
@@ -755,11 +771,8 @@ bool GroupsModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int
 QModelIndex PasswordsModel::index(int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    if (m_group < 0) {
-        return QModelIndex();
-    }
-
-    noteid id{static_cast<int>(m_group), row};
+    int group = static_cast<int>(m_data.m_notes.getGroupIndex(m_group, row));
+    noteid id{group, row};
     return createIndex(row, column, id);
 }
 
@@ -772,8 +785,9 @@ QModelIndex PasswordsModel::parent(const QModelIndex &index) const
 int PasswordsModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    std::span<Note> notes = GetCurrNotes();
-    return static_cast<int>(notes.size());
+    return static_cast<int>(
+        m_data.m_notes.notesCount(m_group)
+    );
 }
 
 int PasswordsModel::columnCount(const QModelIndex &parent) const
@@ -795,7 +809,7 @@ QVariant PasswordsModel::data(const QModelIndex &index, int role) const
     int row {index.row()};
     int col {index.column()};
 
-    const Note* note {GetNote(row)};
+    const Note* note {getNote(row)};
     if (!note) {
         return QVariant();
     }
@@ -840,7 +854,7 @@ bool PasswordsModel::setData(const QModelIndex &index, const QVariant &value, in
     QString v {value.toString()};
     bool changed = false;
 
-    Note* note {GetNote(index.row())};
+    Note* note {getNote(index.row())};
     if (!note) {
         return false;
     }
@@ -897,7 +911,7 @@ Qt::ItemFlags PasswordsModel::flags(const QModelIndex &index) const
 
 bool PasswordsModel::insertRows(int row, int count, const QModelIndex &parent)
 {
-    if (m_group < 0) {
+    if (!isGroupMode()) {
         return false;
     }
 
@@ -921,7 +935,7 @@ bool PasswordsModel::insertRows(int row, int count, const QModelIndex &parent)
 
 bool PasswordsModel::removeRows(int row, int count, const QModelIndex &parent)
 {
-    if (m_group < 0) {
+    if (!isGroupMode()) {
         return false;
     }
 
@@ -939,12 +953,12 @@ bool PasswordsModel::removeRows(int row, int count, const QModelIndex &parent)
 
 Qt::DropActions PasswordsModel::supportedDropActions() const
 {
-    return Qt::MoveAction;
+    return isGroupMode() ? Qt::MoveAction : Qt::IgnoreAction;
 }
 
 QStringList PasswordsModel::mimeTypes() const
 {
-    return { MIME_TYPE };
+    return isGroupMode() ? QStringList{ MIME_TYPE } : QStringList{};
 }
 
 QMimeData *PasswordsModel::mimeData(const QModelIndexList &indexes) const

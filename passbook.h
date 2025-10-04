@@ -30,8 +30,10 @@ public:
 
     const std::vector<QString>& getGroups() const;
     size_t getGroupIndex(const QString& group) const;
+    // mainly needed to deduce real group in ALL_GROUPS case
+    size_t getGroupIndex(size_t groupIndex, size_t noteIndex) const;
     size_t groupsCount() const;
-    size_t notesCount() const;
+    size_t notesCount(size_t groupIndex = ALL_GROUPS) const;
     bool isEmpty() const;
 
     const QString& getGroupName(size_t index) const;
@@ -165,7 +167,7 @@ public:
         });
     }
 
-    void setGroup(int group) {
+    void setGroup(size_t group) {
         beginResetModel();
         m_group = group;
         endResetModel();
@@ -196,21 +198,25 @@ public:
     QMimeData *mimeData(const QModelIndexList &indexes) const override;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
 private:
-    std::span<Note> GetCurrNotes() {
+    bool isGroupMode() const {
+        return m_group != ALL_GROUPS && m_group != NO_GROUPS;
+    }
+
+    std::span<Note> getCurrNotes() {
         return m_data.m_notes.getNotes(m_group);
     }
 
-    std::span<Note> GetCurrNotes() const {
+    std::span<Note> getCurrNotes() const {
         return m_data.m_notes.getNotes(m_group);
     }
 
-    Note* GetNote(int row) {
-        std::span<Note> notes = GetCurrNotes();
+    Note* getNote(int row) {
+        std::span<Note> notes = getCurrNotes();
         return row < notes.size() ? &notes[row] : nullptr;
     }
 
-    const Note* GetNote(int row) const {
-        std::span<Note> notes = GetCurrNotes();
+    const Note* getNote(int row) const {
+        std::span<Note> notes = getCurrNotes();
         return row < notes.size() ? &notes[row] : nullptr;
     }
 
