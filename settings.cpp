@@ -45,7 +45,7 @@ Language::type Language::fromi18nName(const QString &str)
 }
 
 Settings::Settings()
-    : version(1, 3, 0)
+    : version(1, 3, 1)
     , language(Language::English)
     , accountsPath("")
     , translator(nullptr)
@@ -76,7 +76,7 @@ static void changeLanguage()
         delete qtTranslator;
     }
     qtTranslator = new QTranslator();
-    if (qtTranslator->load(QStringLiteral("qtbase_") + lang, QLibraryInfo::location(QLibraryInfo::TranslationsPath))) {
+    if (qtTranslator->load(QStringLiteral("qtbase_") + lang, QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
         qApp->installTranslator(qtTranslator);
     }
 }

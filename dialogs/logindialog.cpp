@@ -171,10 +171,12 @@ void LoginDialog::createAccount(const QString &log, QString &&key)
 
     QString accountFile { currentAccountFile(log) };
     QFile f {accountFile};
-    f.open(QIODevice::WriteOnly);
-    f.write(as<char*>(hs.hash), gost::SIZE_OF_HASH);
-    f.write(as<char*>(hs.salt), gost::SIZE_OF_SALT);
-    f.close();
+    const bool ok = f.open(QIODevice::WriteOnly);
+    if (ok) {
+        f.write(as<char*>(hs.hash), gost::SIZE_OF_HASH);
+        f.write(as<char*>(hs.salt), gost::SIZE_OF_SALT);
+        f.close();
+    }
 
     PassBook* passBook { new PassBook{accountFile, master} };
     PassBookForm *passBookForm { new PassBookForm {passBook} };

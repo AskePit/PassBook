@@ -320,7 +320,10 @@ static constexpr FormatVersion VERSION_130 {0x01030000}; // corresponds to 1.3.0
 FormatVersion PassBook::getDataVersion()
 {
     QFile in {m_fileName};
-    in.open(QIODevice::ReadOnly);
+    const bool ok = in.open(QIODevice::ReadOnly);
+    if (!ok) {
+        return NO_VERSION;
+    }
 
     FormatVersion version;
     QDataStream(in.peek(sizeof(FormatVersion))) >> version;
@@ -353,7 +356,10 @@ int PassBook::verify()
     SecureBytes fileSalt(SIZE_OF_SALT);
 
     QFile in {m_fileName};
-    in.open(QIODevice::ReadOnly);
+    const bool ok = in.open(QIODevice::ReadOnly);
+    if (!ok) {
+        return -1;
+    }
 
     if (version != NO_VERSION) {
         in.seek(sizeof(u32));
@@ -457,7 +463,10 @@ bool PassBook::load()
                 : SIZE_OF_HASH + SIZE_OF_SALT + sizeof(FormatVersion);
 
     QFile f {m_fileName};
-    f.open(QIODevice::ReadOnly);
+    const bool ok = f.open(QIODevice::ReadOnly);
+    if (!ok) {
+        return m_loaded = false;
+    }
     f.seek(sizeOfHeader);
 
     SecureBytes cryptedData(sizeofMessage);
@@ -528,7 +537,10 @@ void PassBook::save()
     }
 
     QFile f{m_fileName};
-    f.open(QIODevice::WriteOnly | QIODevice::Truncate);
+    const bool ok = f.open(QIODevice::WriteOnly | QIODevice::Truncate);
+    if (!ok) {
+        return;
+    }
     QDataStream out(&f);
     out << VERSION_130;
     out.writeRawData(as<char*>(hs.hash), SIZE_OF_HASH);
@@ -1060,7 +1072,8 @@ void PasswordsFilterModel::doFilterWork() {
     m_mostMatched = QModelIndex();
 
     if(!isFiltered()) {
-        invalidateFilter();
+        beginFilterChange();
+        endFilterChange();
         emit filterCanceled();
         return;
     }
@@ -1073,7 +1086,8 @@ void PasswordsFilterModel::doFilterWork() {
         }
     }
 
-    invalidateFilter();
+    beginFilterChange();
+    endFilterChange();
     emit filtered();
 }
 
