@@ -1,5 +1,4 @@
-#ifndef PASSWORDPIXMAP_H
-#define PASSWORDPIXMAP_H
+#pragma once
 
 #include <QMetaType>
 #include "platform.h"
@@ -87,5 +86,3 @@ private:
 };
 
 Q_DECLARE_METATYPE(Password)
-
-#endif // PASSWORDPIXMAP_H

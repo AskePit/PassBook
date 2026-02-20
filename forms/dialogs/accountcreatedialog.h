@@ -1,5 +1,4 @@
-#ifndef ACCOUNTCREATEDIALOG_H
-#define ACCOUNTCREATEDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -25,5 +24,3 @@ private slots:
 private:
     Ui::AccountCreateDialog *ui;
 };
-
-#endif // ACCOUNTCREATEDIALOG_H

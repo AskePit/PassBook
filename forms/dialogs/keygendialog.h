@@ -1,5 +1,4 @@
-#ifndef KEYGENDIALOG_H
-#define KEYGENDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -28,5 +27,3 @@ private:
     size_t m_group;
     size_t m_row;
 };
-
-#endif // KEYGENDIALOG_H

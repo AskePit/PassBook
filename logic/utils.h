@@ -1,5 +1,4 @@
-#ifndef INSTRUMENTS_H
-#define INSTRUMENTS_H
+#pragma once
 
 #include <QApplication>
 #include <QMessageBox>
@@ -124,5 +123,3 @@ QString passGenerate(int n, PasswordType::type type);
 #else
 #define fast_wipememory2(_ptr,_set,_len)
 #endif
-
-#endif //INSTRUMENTS_H

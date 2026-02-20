@@ -1,5 +1,4 @@
-#ifndef PASSBOOKFORM_H
-#define PASSBOOKFORM_H
+#pragma once
 
 #include <QMainWindow>
 #include <QStyledItemDelegate>
@@ -100,5 +99,3 @@ private:
 
     bool m_closeWithBack;
 };
-
-#endif // PASSBOOKFORM_H

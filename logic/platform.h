@@ -1,5 +1,4 @@
-#ifndef PLATFORM_INCLUDE
-#define PLATFORM_INCLUDE
+#pragma once
 
 #include <stdint.h>
 
@@ -26,5 +25,3 @@ typedef int64_t i64;
 #define enum_class(x) class x { public: enum type
 #define enum_interface };
 #define enum_end ;}
-
-#endif // PLATFORM_INCLUDE

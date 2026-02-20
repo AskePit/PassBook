@@ -1,5 +1,4 @@
-#ifndef PASSWORDDIALOG_H
-#define PASSWORDDIALOG_H
+#pragma once
 
 #include "logic/settings.h"
 
@@ -38,5 +37,3 @@ private:
     void createAccount(const QString &log, QString &&key);
     QString currentAccountFile(QString newLogin = QString());
 };
-
-#endif // PASSWORDDIALOG_H

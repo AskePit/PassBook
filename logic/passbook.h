@@ -1,5 +1,4 @@
-#ifndef PASSBOOK_H
-#define PASSBOOK_H
+#pragma once
 
 #include "securetypes.h"
 #include <vector>
@@ -124,5 +123,3 @@ private:
 
     void backupFile();
 };
-
-#endif //PASSBOOK_H

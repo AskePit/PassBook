@@ -1,5 +1,4 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#pragma once
 
 #include "utils.h"
 
@@ -35,5 +34,3 @@ void storeSettings();
 
 extern Settings appSettings;
 extern QSettings iniSettings;
-
-#endif // SETTINGS_H

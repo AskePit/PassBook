@@ -1,16 +1,3 @@
-/*
- * Crypt.h
- *
- *  Created on: 27.07.2015
- *      Author: nikolay shalakin
- *
- *  GOST 28147-89 gamming-crypt algorithm implementation
- *
- */
-
-#ifndef GOST_CRYPT_INCLUDE
-#define GOST_CRYPT_INCLUDE
-
 #include "platform.h"
 
 namespace gost
@@ -43,5 +30,3 @@ namespace gost
 		u32 f(u32 word);
 	};
 }
-
-#endif //GOST_CRYPT_INCLUDE
