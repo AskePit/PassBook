@@ -1,9 +1,10 @@
 #pragma once
 
-#include "utils.h"
+#include "logic/stdExt.h"
 
 #include <QVersionNumber>
 #include <QSettings>
+#include <QTranslator>
 
 enum_class(Language) {
     English,

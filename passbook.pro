@@ -17,6 +17,7 @@ SOURCES += main.cpp \
     logic/securetypes.cpp \
     logic/settings.cpp \
     logic/utils.cpp \
+    models/delegates.cpp \
     models/groupsModel.cpp \
     models/passwordsModel.cpp
 
@@ -33,6 +34,7 @@ HEADERS  += \
     logic/settings.h \
     logic/stdExt.h \
     logic/utils.h \
+    models/delegates.h \
     models/groupsModel.h \
     models/passwordsModel.h
 

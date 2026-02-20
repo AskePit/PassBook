@@ -2,6 +2,7 @@
 
 #include <QTranslator>
 #include <QLibraryInfo>
+#include <QApplication>
 
 const QList<Language::type> &Language::enumerate() {
     static const QList<Language::type> l {

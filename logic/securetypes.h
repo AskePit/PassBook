@@ -57,8 +57,6 @@ private:
     const Master &m_master;
 };
 
-class QPainter;
-class QStyleOptionViewItem;
 class QDataStream;
 
 class Password

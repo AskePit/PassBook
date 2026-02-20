@@ -2,6 +2,7 @@
 #include "crypt.h"
 #include "hash.h"
 #include "settings.h"
+#include "utils.h"
 #include <QDir>
 
 std::span<Note> NotesStorage::getNotes(const QString& group)
