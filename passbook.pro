@@ -29,9 +29,9 @@ HEADERS  += \
     logic/crypt.h \
     logic/hash.h \
     logic/passbook.h \
-    logic/platform.h \
     logic/securetypes.h \
     logic/settings.h \
+    logic/stdExt.h \
     logic/utils.h \
     models/groupsModel.h \
     models/passwordsModel.h

@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "platform.h"
+#include "stdExt.h"
 #include "securetypes.h"
 
 #include <ctime>

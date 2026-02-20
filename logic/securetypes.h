@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QMetaType>
-#include "platform.h"
+#include "stdExt.h"
 
 class SecureString : public QString
 {

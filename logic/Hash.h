@@ -1,5 +1,5 @@
 #include <cstddef>
-#include "platform.h"
+#include "stdExt.h"
 
 namespace gost
 {

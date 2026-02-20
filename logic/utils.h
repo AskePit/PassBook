@@ -2,7 +2,7 @@
 
 #include <QApplication>
 #include <QMessageBox>
-#include "platform.h"
+#include "stdExt.h"
 
 class QWidget;
 class SecureBytes;
