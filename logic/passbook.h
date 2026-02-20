@@ -85,15 +85,6 @@ private:
     quintptr m_id {0};
 };
 
-enum_class(Column) {
-    Name = 0,
-    Url,
-    Login,
-    Password,
-    End,
-    Count = End
-} enum_end;
-
 class PassBook : public QObject {
     Q_OBJECT
 

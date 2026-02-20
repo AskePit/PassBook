@@ -4,6 +4,15 @@
 #include <QSortFilterProxyModel>
 #include <QTimer>
 
+enum_class(Column) {
+    Name = 0,
+    Url,
+    Login,
+    Password,
+    End,
+    Count = End
+} enum_end;
+
 class PasswordsModel : public QAbstractItemModel {
     Q_OBJECT
 
