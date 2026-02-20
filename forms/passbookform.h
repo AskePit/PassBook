@@ -25,21 +25,21 @@ public:
     void closeEvent(QCloseEvent *event);
 
 private slots:
-    void on_addPassButton_clicked();
-    void on_deletePassButton_clicked();
-    void on_addGroupButton_clicked();
-    void on_deleteGroupButton_clicked();
-    void on_backButton_clicked();
-    void on_actionSave_triggered();
-    void on_actionEditPassword_triggered();
-    void on_actionGeneratePassword_triggered();
-    void on_actionInsertPassAbove_triggered();
-    void on_actionInsertPassBelow_triggered();
-    void on_actionInsertGroupAbove_triggered();
-    void on_actionInsertGroupBelow_triggered();
-    void on_filterLineEdit_textEdited(const QString &filterString);
-    void on_filterInGroupCheckBox_toggled(bool checked);
-    void on_filterResetButton_clicked();
+    void onAddPassButtonClicked();
+    void onDeletePassButtonClicked();
+    void onAddGroupButtonClicked();
+    void onDeleteGroupButtonClicked();
+    void onBackButtonClicked();
+    void onActionSaveTriggered();
+    void onActionEditPasswordTriggered();
+    void onActionGeneratePasswordTriggered();
+    void onActionInsertPassAboveTriggered();
+    void onActionInsertPassBelowTriggered();
+    void onActionInsertGroupAboveTriggered();
+    void onActionInsertGroupBelowTriggered();
+    void onFilterLineEditTextEdited(const QString &filterString);
+    void onFilterInGroupCheckBoxToggled(bool checked);
+    void onFilterResetButtonClicked();
 
     void save();
     void doubleClickReact(const QModelIndex& idx);

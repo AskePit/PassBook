@@ -29,6 +29,21 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     setAttribute(Qt::WA_Hover);
     setMouseTracking(true);
 
+    connect(ui->addPassButton, &QPushButton::clicked, this, &PassBookForm::onAddPassButtonClicked);
+    connect(ui->deletePassButton, &QPushButton::clicked, this, &PassBookForm::onDeletePassButtonClicked);
+    connect(ui->addGroupButton, &QPushButton::clicked, this, &PassBookForm::onAddGroupButtonClicked);
+    connect(ui->deleteGroupButton, &QPushButton::clicked, this, &PassBookForm::onDeleteGroupButtonClicked);
+    connect(ui->backButton, &QPushButton::clicked, this, &PassBookForm::onBackButtonClicked);
+    connect(ui->actionSave, &QAction::triggered, this, &PassBookForm::onActionSaveTriggered);
+    connect(ui->actionEditPassword, &QAction::triggered, this, &PassBookForm::onActionEditPasswordTriggered);
+    connect(ui->actionGeneratePassword, &QAction::triggered, this, &PassBookForm::onActionGeneratePasswordTriggered);
+    connect(ui->actionInsertPassAbove, &QAction::triggered, this, &PassBookForm::onActionInsertPassAboveTriggered);
+    connect(ui->actionInsertPassBelow, &QAction::triggered, this, &PassBookForm::onActionInsertPassBelowTriggered);
+    connect(ui->actionInsertGroupAbove, &QAction::triggered, this, &PassBookForm::onActionInsertGroupAboveTriggered);
+    connect(ui->actionInsertGroupBelow, &QAction::triggered, this, &PassBookForm::onActionInsertGroupBelowTriggered);
+    connect(ui->filterLineEdit, &QLineEdit::textEdited, this, &PassBookForm::onFilterLineEditTextEdited);
+    connect(ui->filterInGroupCheckBox, &QCheckBox::toggled, this, &PassBookForm::onFilterInGroupCheckBoxToggled);
+    connect(ui->filterResetButton, &QPushButton::clicked, this, &PassBookForm::onFilterResetButtonClicked);
     addAction(ui->actionSave);
 
     TableEventFilter *filter { new TableEventFilter };
@@ -124,18 +139,18 @@ PassBookForm::~PassBookForm()
     delete ui;
 }
 
-void PassBookForm::on_addPassButton_clicked()
+void PassBookForm::onAddPassButtonClicked()
 {
     m_passwordsModel->insertRow(m_passwordsModel->rowCount());
 }
 
-void PassBookForm::on_deletePassButton_clicked()
+void PassBookForm::onDeletePassButtonClicked()
 {
     QModelIndex index { ui->passTable->currentIndex() };
     m_passwordsModel->removeRow(index.row(), index.parent());
 }
 
-void PassBookForm::on_addGroupButton_clicked()
+void PassBookForm::onAddGroupButtonClicked()
 {
     int i = m_groupsModel->rowCount();
     m_groupsModel->insertRow(i);
@@ -143,7 +158,7 @@ void PassBookForm::on_addGroupButton_clicked()
     ui->groupList->selectionModel()->setCurrentIndex(m_groupsModel->index(i, 0), QItemSelectionModel::Select);
 }
 
-void PassBookForm::on_deleteGroupButton_clicked()
+void PassBookForm::onDeleteGroupButtonClicked()
 {
     QModelIndex index { ui->groupList->currentIndex() };
     m_groupsModel->removeRow(index.row(), index.parent());
@@ -154,7 +169,7 @@ void PassBookForm::save()
     m_passBook->save();
 }
 
-void PassBookForm::on_backButton_clicked()
+void PassBookForm::onBackButtonClicked()
 {
     m_closeWithBack = true;
     close();
@@ -268,48 +283,48 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     }
 }
 
-void PassBookForm::on_actionSave_triggered()
+void PassBookForm::onActionSaveTriggered()
 {
     save();
 }
 
-void PassBookForm::on_actionEditPassword_triggered()
+void PassBookForm::onActionEditPasswordTriggered()
 {
     ui->passTable->edit(ui->passTable->currentIndex());
 }
 
-void PassBookForm::on_actionGeneratePassword_triggered()
+void PassBookForm::onActionGeneratePasswordTriggered()
 {
     QModelIndex noteIndex { m_passwordsFilterModel->mapToSource(ui->passTable->currentIndex()) };
     KeyGenDialog *d { new KeyGenDialog{*m_passBook, m_passwordsModel->getGroup(), static_cast<size_t>(noteIndex.row())} };
     d->show();
 }
 
-void PassBookForm::on_actionInsertPassAbove_triggered()
+void PassBookForm::onActionInsertPassAboveTriggered()
 {
     QModelIndex index { ui->passTable->currentIndex() };
     m_passwordsModel->insertRow(index.row(), index.parent());
 }
 
-void PassBookForm::on_actionInsertPassBelow_triggered()
+void PassBookForm::onActionInsertPassBelowTriggered()
 {
     QModelIndex index { ui->passTable->currentIndex() };
     m_passwordsModel->insertRow(index.row()+1, index.parent());
 }
 
-void PassBookForm::on_actionInsertGroupAbove_triggered()
+void PassBookForm::onActionInsertGroupAboveTriggered()
 {
     QModelIndex index { ui->groupList->currentIndex() };
     m_groupsModel->insertRow(index.row(), index.parent());
 }
 
-void PassBookForm::on_actionInsertGroupBelow_triggered()
+void PassBookForm::onActionInsertGroupBelowTriggered()
 {
     QModelIndex index { ui->groupList->currentIndex() };
     m_groupsModel->insertRow(index.row()+1, index.parent());
 }
 
-void PassBookForm::on_filterLineEdit_textEdited(const QString &filterString)
+void PassBookForm::onFilterLineEditTextEdited(const QString &filterString)
 {
     const bool stayInGroup = ui->filterInGroupCheckBox->isChecked();
 
@@ -326,16 +341,16 @@ void PassBookForm::on_filterLineEdit_textEdited(const QString &filterString)
     m_passwordsFilterModel->setFilterString(filterString);
 }
 
-void PassBookForm::on_filterInGroupCheckBox_toggled(bool checked)
+void PassBookForm::onFilterInGroupCheckBoxToggled(bool checked)
 {
     Q_UNUSED(checked);
-    on_filterLineEdit_textEdited(ui->filterLineEdit->text());
+    onFilterLineEditTextEdited(ui->filterLineEdit->text());
 }
 
 
-void PassBookForm::on_filterResetButton_clicked()
+void PassBookForm::onFilterResetButtonClicked()
 {
     ui->filterLineEdit->clear();
-    on_filterLineEdit_textEdited(ui->filterLineEdit->text());
+    onFilterLineEditTextEdited(ui->filterLineEdit->text());
 }
 
