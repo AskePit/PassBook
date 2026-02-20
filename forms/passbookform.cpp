@@ -6,6 +6,7 @@
 #include <QMenu>
 #include <QLineEdit>
 #include <QTableView>
+#include <QPainter>
 #include "logic/utils.h"
 #include "logic/passbook.h"
 
@@ -42,7 +43,46 @@ PassBookDelegate::PassBookDelegate(QWidget *parent)
 void PassBookDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     Password password { qvariant_cast<Password>(index.data()) };
-    password.paint(painter, option, index == m_hoveredPassword);
+
+    const bool show = index == m_hoveredPassword;
+
+    const QRect &rect { option.rect };
+
+    if(option.state & QStyle::State_Selected) {
+        painter->fillRect(rect, QColor(0xF5, 0xF5, 0xF5));
+    }
+
+    QString pass { password.get() };
+
+    if(pass.isEmpty()) {
+        return;
+    }
+
+    if(show) {
+        QFont font {QStringLiteral("Consolas"), 9};
+        QFontMetrics fm {font};
+        const int margin {4};
+        int w { static_cast<int>(fm.averageCharWidth() * pass.size() + margin) };
+
+        QPixmap pixmap {w, rect.height()};
+        pixmap.fill();
+
+        QPainter p(&pixmap);
+        p.setFont(font);
+
+        if(option.state & QStyle::State_Selected) {
+            p.fillRect(0, 0, rect.width(), rect.height(), QColor(0xF5, 0xF5, 0xF5));
+        }
+        p.drawText(margin, margin, w, rect.height(), 0, pass);
+        painter->drawPixmap(rect.x(), rect.y(), pixmap);
+    } else {
+        QPixmap pixmap {rect.width(), rect.height()};
+        pixmap.fill();
+
+        QPainter p {&pixmap};
+        p.fillRect(0, 0, rect.width(), rect.height(), Qt::Dense4Pattern);
+        painter->drawPixmap(option.rect.x(), rect.y(), pixmap);
+    }
 }
 
 QWidget *PassBookDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const

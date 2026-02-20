@@ -4,8 +4,6 @@
 #include "hash.h"
 
 #include <functional>
-#include <QPainter>
-#include <QStyleOptionViewItem>
 #include <QDataStream>
 
 SecureString::SecureString(QString &&str) : QString(str) {}
@@ -174,47 +172,6 @@ SecureString Password::get() const
     crypter.cryptData(as<u8*>(pass), as<const u8*>(m_cryptedPass), m_cryptedPass.size(), as<const u8*>(door.get()));
 
     return SecureString{ QString::fromUtf8(pass) };
-}
-
-void Password::paint(QPainter *painter, const QStyleOptionViewItem &option, bool show)
-{
-    const QRect &rect { option.rect };
-
-    if(option.state & QStyle::State_Selected) {
-        painter->fillRect(rect, QColor(0xF5, 0xF5, 0xF5));
-    }
-
-    if(m_cryptedPass.isEmpty()) {
-        return;
-    }
-
-    if(show) {
-        QString pass { get() };
-
-        QFont font {QStringLiteral("Consolas"), 9};
-        QFontMetrics fm {font};
-        const int margin {4};
-        int w { static_cast<int>(fm.averageCharWidth() * pass.size() + margin) };
-
-        QPixmap pixmap {w, rect.height()};
-        pixmap.fill();
-
-        QPainter p(&pixmap);
-        p.setFont(font);
-
-        if(option.state & QStyle::State_Selected) {
-            p.fillRect(0, 0, rect.width(), rect.height(), QColor(0xF5, 0xF5, 0xF5));
-        }
-        p.drawText(margin, margin, w, rect.height(), 0, pass);
-        painter->drawPixmap(rect.x(), rect.y(), pixmap);
-    } else {
-        QPixmap pixmap {rect.width(), rect.height()};
-        pixmap.fill();
-
-        QPainter p {&pixmap};
-        p.fillRect(0, 0, rect.width(), rect.height(), Qt::Dense4Pattern);
-        painter->drawPixmap(option.rect.x(), rect.y(), pixmap);
-    }
 }
 
 QDataStream &operator << (QDataStream &arch, const Password &object)

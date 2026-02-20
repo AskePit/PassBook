@@ -74,8 +74,6 @@ public:
 
     SecureString get() const;
 
-    void paint(QPainter *painter, const QStyleOptionViewItem &option, bool show);
-
     friend QDataStream &operator << (QDataStream &arch, const Password &object);
     friend QDataStream &operator >> (QDataStream &arch, Password &object);
 
