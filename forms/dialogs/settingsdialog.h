@@ -19,7 +19,7 @@ signals:
     void accountsPathChanged();
 
 private slots:
-    void on_buttonBox_accepted();
+    void onButtonBoxAccepted();
     void setDefaultPath();
 
 private:

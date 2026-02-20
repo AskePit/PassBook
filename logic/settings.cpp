@@ -46,7 +46,7 @@ Language::type Language::fromi18nName(const QString &str)
 }
 
 Settings::Settings()
-    : version(1, 3, 1)
+    : version(1, 4, 1)
     , language(Language::English)
     , accountsPath("")
     , translator(nullptr)

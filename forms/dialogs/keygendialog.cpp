@@ -13,6 +13,9 @@ KeyGenDialog::KeyGenDialog(PassBook &passBook, size_t group, size_t row, QWidget
 {
     ui->setupUi(this);
 
+    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &KeyGenDialog::onButtonBoxRejected);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &KeyGenDialog::onButtonBoxAccepted);
+
     for(auto t : PasswordType::enumerate()) {
         ui->comboBox->addItem(PasswordType::toString(t));
     }
@@ -25,12 +28,12 @@ KeyGenDialog::~KeyGenDialog()
     delete ui;
 }
 
-void KeyGenDialog::on_buttonBox_rejected()
+void KeyGenDialog::onButtonBoxRejected()
 {
     QDialog::reject();
 }
 
-void KeyGenDialog::on_buttonBox_accepted()
+void KeyGenDialog::onButtonBoxAccepted()
 {
     PasswordType::type type { static_cast<PasswordType::type>(ui->comboBox->currentIndex()) };
     QString p { passGenerate(ui->spinBox->value(), type) };

@@ -1,7 +1,7 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 
-#include "logindialog.h"
+#include "logic/settings.h"
 
 #include <QFileInfo>
 #include <QFileDialog>
@@ -12,7 +12,9 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    connect(ui->customButton, &QRadioButton::toggled, [this](bool checked){
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &SettingsDialog::onButtonBoxAccepted);
+
+    connect(ui->customButton, &QRadioButton::toggled, this, [this](bool checked){
         ui->pathEdit->setEnabled(checked);
         ui->browseButton->setEnabled(checked);
         if(!checked) {
@@ -34,7 +36,7 @@ SettingsDialog::SettingsDialog(QWidget *parent)
         ui->customButton->setChecked(true);
     }
 
-    connect(ui->browseButton, &QPushButton::clicked, [this]() {
+    connect(ui->browseButton, &QPushButton::clicked, this, [this]() {
         QString newPath { QFileDialog::getExistingDirectory(this, tr("Choose accounts folder"), ui->pathEdit->text()) };
         if(!newPath.isNull()) {
             ui->pathEdit->setText(newPath);
@@ -53,7 +55,7 @@ void SettingsDialog::setDefaultPath()
     ui->pathEdit->setText(info.absoluteFilePath());
 }
 
-void SettingsDialog::on_buttonBox_accepted()
+void SettingsDialog::onButtonBoxAccepted()
 {
     bool langChanged = false;
     bool pathChanged = false;

@@ -18,8 +18,8 @@ public:
     QString password();
 
 private slots:
-    void on_buttonBox_rejected();
-    void on_buttonBox_accepted();
+    void onButtonBoxRejected();
+    void onButtonBoxAccepted();
 
 private:
     Ui::AccountCreateDialog *ui;

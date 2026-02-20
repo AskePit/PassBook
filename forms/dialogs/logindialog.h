@@ -20,11 +20,11 @@ public:
 private slots:
     void loadAccounts();
 
-    void on_createButton_clicked();
-    void on_deleteButton_clicked();
-    void on_enterButton_clicked();
-    void on_actionAbout_triggered();
-    void on_actionSettings_triggered();
+    void onCreateButtonClicked();
+    void onDeleteButtonClicked();
+    void onEnterButtonClicked();
+    void onActionAboutTriggered();
+    void onActionSettingsTriggered();
 
     void deleteAccount();
 

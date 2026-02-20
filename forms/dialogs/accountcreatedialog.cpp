@@ -6,6 +6,9 @@ AccountCreateDialog::AccountCreateDialog(QWidget *parent)
     , ui(new Ui::AccountCreateDialog)
 {
     ui->setupUi(this);
+
+    connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &AccountCreateDialog::onButtonBoxRejected);
+    connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &AccountCreateDialog::onButtonBoxAccepted);
 }
 
 AccountCreateDialog::~AccountCreateDialog()
@@ -13,12 +16,12 @@ AccountCreateDialog::~AccountCreateDialog()
     delete ui;
 }
 
-void AccountCreateDialog::on_buttonBox_rejected()
+void AccountCreateDialog::onButtonBoxRejected()
 {
     QDialog::reject();
 }
 
-void AccountCreateDialog::on_buttonBox_accepted()
+void AccountCreateDialog::onButtonBoxAccepted()
 {
     if(ui->loginLine->text().isEmpty())                     ui->msg_label->setText(tr("Enter Login"));
     else if (ui->keyLine->text().isEmpty())                 ui->msg_label->setText(tr("Enter password"));

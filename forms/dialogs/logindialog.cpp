@@ -6,13 +6,13 @@
 #include "forms/dialogs/settingsdialog.h"
 
 #include "logic/utils.h"
-#include "logic/Crypt.h"
-#include "logic/Hash.h"
+#include "logic/crypt.h"
+#include "logic/hash.h"
 #include "logic/passbook.h"
 
 #include <QDir>
 
-static const QString ACCOUNT_EXT{".dat"};
+static const char* ACCOUNT_EXT{".dat"};
 
 LoginDialog::LoginDialog(QWidget *parent)
     : QMainWindow(parent)
@@ -20,6 +20,12 @@ LoginDialog::LoginDialog(QWidget *parent)
 {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
+
+    connect(ui->createButton, &QPushButton::clicked, this, &LoginDialog::onCreateButtonClicked);
+    connect(ui->deleteButton, &QPushButton::clicked, this, &LoginDialog::onDeleteButtonClicked);
+    connect(ui->enterButton, &QPushButton::clicked, this, &LoginDialog::onEnterButtonClicked);
+    connect(ui->actionAbout, &QAction::triggered, this, &LoginDialog::onActionAboutTriggered);
+    connect(ui->actionSettings, &QAction::triggered, this, &LoginDialog::onActionSettingsTriggered);
 
     loadSettings();
     ui->retranslateUi(this);
@@ -75,7 +81,7 @@ QString LoginDialog::currentAccountFile(QString newLogin)
     return QString(isDefault ? QStringLiteral("%1%2%3"): QStringLiteral("%1/%2%3")).arg(appSettings.accountsPath, login, ACCOUNT_EXT);
 }
 
-void LoginDialog::on_enterButton_clicked()
+void LoginDialog::onEnterButtonClicked()
 {
     ui->statusBar->clearMessage();
     QString filename { currentAccountFile() };
@@ -102,7 +108,7 @@ void LoginDialog::on_enterButton_clicked()
     close();
 }
 
-void LoginDialog::on_deleteButton_clicked()
+void LoginDialog::onDeleteButtonClicked()
 {
     ui->statusBar->clearMessage();
     QString filename { currentAccountFile() };
@@ -149,7 +155,7 @@ void LoginDialog::deleteAccount()
     }
 }
 
-void LoginDialog::on_createButton_clicked()
+void LoginDialog::onCreateButtonClicked()
 {
     AccountCreateDialog d { this };
     int res = d.exec();
@@ -185,16 +191,16 @@ void LoginDialog::createAccount(const QString &log, QString &&key)
     close();
 }
 
-void LoginDialog::on_actionAbout_triggered()
+void LoginDialog::onActionAboutTriggered()
 {
     QString v = appSettings.version.toString();
     callInfoDialog(tr("Pass Book version %1").arg(v), this);
 }
 
-void LoginDialog::on_actionSettings_triggered()
+void LoginDialog::onActionSettingsTriggered()
 {
     SettingsDialog *d { new SettingsDialog {this} };
-    connect(d, &SettingsDialog::languageChanged, [this](){ ui->retranslateUi(this); });
+    connect(d, &SettingsDialog::languageChanged, this, [this](){ ui->retranslateUi(this); });
     connect(d, &SettingsDialog::accountsPathChanged, this, &LoginDialog::loadAccounts);
     d->show();
 }
