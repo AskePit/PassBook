@@ -59,13 +59,13 @@ private:
     std::vector<QString> m_groupNames;
 };
 
-class noteid
+class NoteId
 {
 public:
-    noteid() = default;
-    noteid(quintptr id) : m_id{id} {}
-    noteid(int groupIndex) : m_id(groupIndex) {}
-    noteid(int groupIndex, int noteIndex)
+    NoteId() = default;
+    NoteId(quintptr id) : m_id{id} {}
+    NoteId(int groupIndex) : m_id(groupIndex) {}
+    NoteId(int groupIndex, int noteIndex)
         : m_id(0)
     {
         m_id = groupIndex;

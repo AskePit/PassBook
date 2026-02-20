@@ -7,7 +7,7 @@ QModelIndex PasswordsModel::index(int row, int column, const QModelIndex &parent
 {
     Q_UNUSED(parent);
     int group = static_cast<int>(m_data.m_notes.getGroupIndex(m_group, row));
-    noteid id{group, row};
+    NoteId id{group, row};
     return createIndex(row, column, id);
 }
 
@@ -210,7 +210,7 @@ QMimeData *PasswordsModel::mimeData(const QModelIndexList &indexes) const
     if(indexes.size()) {
         QModelIndex index = indexes.first();
         if (index.isValid()) {
-            noteid id {index.internalId()};
+            NoteId id {index.internalId()};
             stream << static_cast<quintptr>(id);
         }
     }
@@ -228,7 +228,7 @@ bool PasswordsModel::dropMimeData(const QMimeData *data, Qt::DropAction action, 
         return false;
     }
 
-    noteid id;
+    NoteId id;
     {
         QByteArray bytes { data->data(MIME_TYPE) };
         QDataStream stream(&bytes, QIODevice::ReadOnly);

@@ -17,7 +17,7 @@ QModelIndex GroupsModel::index(int row, int column, const QModelIndex &parent) c
         return QModelIndex();
     }
 
-    return createIndex(row, column, noteid{row});
+    return createIndex(row, column, NoteId{row});
 }
 
 QModelIndex GroupsModel::parent(const QModelIndex &index) const
@@ -92,7 +92,7 @@ Qt::ItemFlags GroupsModel::flags(const QModelIndex &index) const
 
     f |=  Qt::ItemIsSelectable | Qt::ItemIsEditable;
 
-    noteid id {index.internalId()};
+    NoteId id {index.internalId()};
 
     if(index.isValid()) {
         f |= Qt::ItemIsDragEnabled;
@@ -158,7 +158,7 @@ QMimeData *GroupsModel::mimeData(const QModelIndexList &indexes) const
     if(indexes.size()) {
         QModelIndex index = indexes.first();
         if (index.isValid()) {
-            noteid id {index.internalId()};
+            NoteId id {index.internalId()};
             stream << static_cast<quintptr>(id);
         }
     }
@@ -176,7 +176,7 @@ bool GroupsModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int
         return false;
     }
 
-    noteid id;
+    NoteId id;
     {
         QByteArray bytes { data->data(MIME_TYPE) };
         QDataStream stream(&bytes, QIODevice::ReadOnly);
