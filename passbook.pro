@@ -5,39 +5,43 @@ TEMPLATE = app
 
 CONFIG += c++20
 
-SOURCES += main.cpp\
-    passbook.cpp \
-    passbookform.cpp \
-    hash.cpp \
-    crypt.cpp \
-    dialogs/keygendialog.cpp \
-    utils.cpp \
-    securetypes.cpp \
-    dialogs/accountcreatedialog.cpp \
-    dialogs/logindialog.cpp \
-    dialogs/settingsdialog.cpp \
-    settings.cpp
+SOURCES += main.cpp \
+    forms/dialogs/accountcreatedialog.cpp \
+    forms/dialogs/keygendialog.cpp \
+    forms/dialogs/logindialog.cpp \
+    forms/dialogs/settingsdialog.cpp \
+    forms/passbookform.cpp \
+    logic/crypt.cpp \
+    logic/hash.cpp \
+    logic/passbook.cpp \
+    logic/securetypes.cpp \
+    logic/settings.cpp \
+    logic/utils.cpp \
+    models/groupsModel.cpp \
+    models/passwordsModel.cpp
 
 HEADERS  += \
-    passbook.h \
-    passbookform.h \
-    platform.h \
-    hash.h \
-    crypt.h \
-    dialogs/keygendialog.h \
-    utils.h \
-    securetypes.h \
-    dialogs/accountcreatedialog.h \
-    dialogs/logindialog.h \
-    dialogs/settingsdialog.h \
-    settings.h
+    forms/dialogs/accountcreatedialog.h \
+    forms/dialogs/keygendialog.h \
+    forms/dialogs/logindialog.h \
+    forms/dialogs/settingsdialog.h \
+    forms/passbookform.h \
+    logic/crypt.h \
+    logic/hash.h \
+    logic/passbook.h \
+    logic/platform.h \
+    logic/securetypes.h \
+    logic/settings.h \
+    logic/utils.h \
+    models/groupsModel.h \
+    models/passwordsModel.h
 
 FORMS    += \
-    passbookform.ui \
-    dialogs/keygendialog.ui \
-    dialogs/accountcreatedialog.ui \
-    dialogs/logindialog.ui \
-    dialogs/settingsdialog.ui
+    forms/dialogs/accountcreatedialog.ui \
+    forms/dialogs/keygendialog.ui \
+    forms/dialogs/logindialog.ui \
+    forms/dialogs/settingsdialog.ui \
+    forms/passbookform.ui
 
 RESOURCES += \
     resources/i18n/lang.qrc \

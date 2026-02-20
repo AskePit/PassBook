@@ -1,6 +1,6 @@
 #include <QApplication>
 #include <QStyleFactory>
-#include "dialogs/logindialog.h"
+#include "forms/dialogs/logindialog.h"
 
 int main(int argc, char *argv[])
 {

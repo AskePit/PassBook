@@ -5,11 +5,15 @@
 #include <QMouseEvent>
 #include <QMenu>
 #include <QLineEdit>
-#include "utils.h"
-#include "passbook.h"
+#include <QTableView>
+#include "logic/utils.h"
+#include "logic/passbook.h"
 
-#include "dialogs/logindialog.h"
-#include "dialogs/keygendialog.h"
+#include "models/groupsModel.h"
+#include "models/passwordsModel.h"
+
+#include "forms/dialogs/logindialog.h"
+#include "forms/dialogs/keygendialog.h"
 
 bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
 {

@@ -1,8 +1,8 @@
 #include "keygendialog.h"
 #include "ui_keygendialog.h"
 
-#include "passbook.h"
-#include "utils.h"
+#include "logic/passbook.h"
+#include "logic/utils.h"
 
 KeyGenDialog::KeyGenDialog(PassBook &passBook, size_t group, size_t row, QWidget *parent)
     : QDialog(parent)

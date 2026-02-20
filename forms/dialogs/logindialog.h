@@ -1,7 +1,7 @@
 #ifndef PASSWORDDIALOG_H
 #define PASSWORDDIALOG_H
 
-#include "settings.h"
+#include "logic/settings.h"
 
 #include <QMainWindow>
 #include <QSettings>

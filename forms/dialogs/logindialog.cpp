@@ -1,14 +1,14 @@
 #include "logindialog.h"
 #include "ui_logindialog.h"
 
-#include "passbookform.h"
-#include "accountcreatedialog.h"
-#include "settingsdialog.h"
+#include "forms/passbookform.h"
+#include "forms/dialogs/accountcreatedialog.h"
+#include "forms/dialogs/settingsdialog.h"
 
-#include "utils.h"
-#include "Crypt.h"
-#include "Hash.h"
-#include "passbook.h"
+#include "logic/utils.h"
+#include "logic/Crypt.h"
+#include "logic/Hash.h"
+#include "logic/passbook.h"
 
 #include <QDir>
 
