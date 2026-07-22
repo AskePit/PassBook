@@ -1,0 +1,340 @@
+/*
+ * Passbook flat light theme.
+ * Palette: background #FFFFFF, panel #FAFAFA, border #E2E4E8,
+ * text #1F2328, muted text #6B7280, soft accent #93AAE0 / #EEF1F8.
+ * No gradients, no shadows, 1px thin borders, 2px corner radius.
+ */
+
+* {
+    outline: none;
+}
+
+QWidget {
+    background-color: #FFFFFF;
+    color: #1F2328;
+    font-size: 9pt;
+}
+
+QMainWindow, QDialog {
+    background-color: #FFFFFF;
+}
+
+/* --- Buttons --- */
+
+QPushButton {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    border-radius: 2px;
+    padding: 8px 18px;
+    color: #1F2328;
+}
+
+QPushButton:hover {
+    background-color: #F2F6FD;
+    border-color: #93AAE0;
+}
+
+QPushButton:pressed {
+    background-color: #E9EFFA;
+    border-color: #93AAE0;
+}
+
+QPushButton:disabled {
+    color: #B7BCC5;
+    border-color: #ECEDF0;
+}
+
+QPushButton:default {
+    border-color: #93AAE0;
+}
+
+QPushButton:flat {
+    border: none;
+    padding: 2px;
+    background-color: transparent;
+}
+
+QPushButton:flat:hover {
+    color: #6B7280;
+}
+
+/* Small square icon-glyph buttons ("+" / "-" / "x" / back arrow) need
+   their own tight padding - the general button padding would clip
+   their fixed-size box. */
+#addGroupButton, #deleteGroupButton,
+#addPassButton, #deletePassButton,
+#backButton, #filterResetButton {
+    padding: 2px;
+}
+
+/* --- Text inputs --- */
+
+QLineEdit, QSpinBox, QComboBox {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    border-radius: 2px;
+    padding: 7px 8px;
+    selection-background-color: #DCE3F2;
+    selection-color: #1F2328;
+}
+
+QComboBox {
+    /* forces the non-native popup so it actually respects our QSS box
+       model - otherwise the dropdown list misaligns with the box */
+    combobox-popup: 0;
+}
+
+QLineEdit:focus, QSpinBox:focus, QComboBox:focus {
+    border-color: #93AAE0;
+}
+
+QLineEdit:disabled {
+    color: #B7BCC5;
+    background-color: #FAFAFA;
+}
+
+QSpinBox {
+    padding-right: 20px;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    subcontrol-origin: border;
+    width: 16px;
+    border-left: 1px solid #E2E4E8;
+    background-color: #FAFAFA;
+}
+
+QSpinBox::up-button {
+    subcontrol-position: top right;
+    border-top-right-radius: 2px;
+}
+
+QSpinBox::down-button {
+    subcontrol-position: bottom right;
+    border-bottom-right-radius: 2px;
+    border-top: 1px solid #E2E4E8;
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #E9EFFA;
+}
+
+QSpinBox::up-arrow {
+    image: url(:/chevron_up.svg);
+    width: 8px;
+    height: 8px;
+}
+
+QSpinBox::down-arrow {
+    image: url(:/chevron_down.svg);
+    width: 8px;
+    height: 8px;
+}
+
+QComboBox {
+    padding-right: 26px;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    border: none;
+    width: 22px;
+}
+
+QComboBox::down-arrow {
+    image: url(:/chevron_down.svg);
+    width: 10px;
+    height: 10px;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #E2E4E8;
+    background-color: #FFFFFF;
+    selection-background-color: #E9EFFA;
+    selection-color: #1F2328;
+}
+
+/* --- Checkboxes --- */
+
+QCheckBox {
+    spacing: 6px;
+}
+
+QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    border: 1px solid #E2E4E8;
+    border-radius: 1px;
+    background-color: #FFFFFF;
+}
+
+QCheckBox::indicator:hover {
+    border-color: #93AAE0;
+}
+
+QCheckBox::indicator:checked {
+    border-color: #93AAE0;
+    background-color: #93AAE0;
+}
+
+/* --- List / table views --- */
+
+QListView, QTableView, QTreeView {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    border-radius: 2px;
+    gridline-color: transparent;
+    selection-background-color: #E9EFFA;
+    selection-color: #1F2328;
+}
+
+QListView::item, QTableView::item {
+    padding: 8px 10px;
+    border: none;
+}
+
+QTableView::item {
+    border-bottom: 1px solid #F0F1F3;
+}
+
+QListView::item:hover, QTableView::item:hover {
+    background-color: #F4F7FD;
+    color: #1F2328;
+}
+
+QListView::item:selected, QTableView::item:selected {
+    background-color: #E9EFFA;
+    color: #1F2328;
+}
+
+QHeaderView::section {
+    background-color: #FAFAFA;
+    color: #1F2328;
+    font-weight: bold;
+    border: none;
+    border-bottom: 1px solid #E2E4E8;
+    margin: 0;
+    padding: 4px 10px 4px 13px;
+}
+
+QHeaderView::section:checked {
+    background-color: #FAFAFA;
+    color: #1F2328;
+    font-weight: bold;
+}
+
+/* --- Splitter ---
+   No visible line on the handle itself - the groups list and passwords
+   table each keep their own border, and the handle is just spacing
+   wide enough that those two borders don't touch. */
+
+QSplitter::handle {
+    background-color: transparent;
+}
+
+QSplitter::handle:horizontal {
+    width: 4px;
+}
+
+QSplitter::handle:vertical {
+    height: 1px;
+}
+
+/* --- Scrollbars --- */
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #D6D9DE;
+    border-radius: 4px;
+    min-height: 24px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #B7BCC5;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background: #D6D9DE;
+    border-radius: 4px;
+    min-width: 24px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #B7BCC5;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    width: 0;
+    height: 0;
+    border: none;
+    background: none;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+}
+
+/* --- Labels / group boxes --- */
+
+QLabel {
+    background-color: transparent;
+}
+
+QGroupBox {
+    border: 1px solid #E2E4E8;
+    border-radius: 2px;
+    margin-top: 8px;
+    padding-top: 6px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 8px;
+    padding: 0 4px;
+    color: #6B7280;
+}
+
+/* --- Menus --- */
+
+QMenu {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E4E8;
+    border-radius: 2px;
+    padding: 4px;
+}
+
+QMenu::item {
+    padding: 4px 20px;
+    border-radius: 1px;
+}
+
+QMenu::item:selected {
+    background-color: #E9EFFA;
+    color: #1F2328;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #E2E4E8;
+    margin: 4px 0;
+}
+
+QToolTip {
+    background-color: #1F2328;
+    color: #FFFFFF;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 2px;
+}

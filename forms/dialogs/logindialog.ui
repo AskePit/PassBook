@@ -7,14 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>366</width>
-    <height>192</height>
+    <height>196</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Pass Book</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resources/resouces.qrc">
+   <iconset resource="../../resources/resouces.qrc">
     <normaloff>:/logo_white.png</normaloff>:/logo_white.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -26,11 +26,17 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>366</width>
-     <height>189</height>
+     <width>400</width>
+     <height>250</height>
     </size>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
+    <property name="spacing">
+     <number>18</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
@@ -136,14 +142,14 @@
        <widget class="QPushButton" name="enterButton">
         <property name="minimumSize">
          <size>
-          <width>91</width>
-          <height>31</height>
+          <width>110</width>
+          <height>38</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>91</width>
-          <height>31</height>
+          <width>110</width>
+          <height>38</height>
          </size>
         </property>
         <property name="text">
@@ -161,7 +167,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -181,6 +186,7 @@
    </widget>
    <addaction name="menuLanguage"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionSettings">
    <property name="text">
     <string>Settings...</string>
@@ -193,7 +199,7 @@
   </action>
  </widget>
  <resources>
-  <include location="../resources/resouces.qrc"/>
+  <include location="../../resources/resouces.qrc"/>
  </resources>
  <connections/>
 </ui>

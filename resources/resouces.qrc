@@ -3,5 +3,10 @@
         <file>logo_transparent.png</file>
         <file>logo_white.png</file>
         <file>logo_white.ico</file>
+        <file>theme.qss</file>
+        <file>chevron_down.svg</file>
+        <file>chevron_up.svg</file>
+        <file>arrow_left.svg</file>
+        <file>cross.svg</file>
     </qresource>
 </RCC>

@@ -4,6 +4,7 @@
 #include <QClipboard>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QHeaderView>
 #include "logic/passbook.h"
 #include "logic/utils.h"
 
@@ -28,6 +29,10 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_Hover);
     setMouseTracking(true);
+
+    ui->passTable->setShowGrid(false);
+    ui->passTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    ui->passTable->horizontalHeader()->setHighlightSections(false);
 
     connect(ui->addPassButton, &QPushButton::clicked, this, &PassBookForm::onAddPassButtonClicked);
     connect(ui->deletePassButton, &QPushButton::clicked, this, &PassBookForm::onDeletePassButtonClicked);
@@ -82,7 +87,9 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
         checkTableSelection(curr);
     });
 
+    ui->passTable->setItemDelegate(new FlatItemDelegate(this));
     ui->passTable->setItemDelegateForColumn(Column::Password, m_passBookDelegate);
+    ui->groupList->setItemDelegate(new FlatItemDelegate(this, 32));
     ui->passTable->setColumnWidth(Column::Name, 125);
     ui->passTable->setColumnWidth(Column::Url, 150);
     ui->passTable->setColumnWidth(Column::Login, 100);

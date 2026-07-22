@@ -5,6 +5,7 @@
 #include <QTableView>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPen>
 #include <QLineEdit>
 
 bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
@@ -24,12 +25,36 @@ bool TableEventFilter::eventFilter(QObject *watched, QEvent *event)
     return QObject::eventFilter(watched, event);
 }
 
+QSize FlatItemDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    QSize size { QStyledItemDelegate::sizeHint(option, index) };
+
+    if(m_fixedRowHeight > 0) {
+        size.setHeight(m_fixedRowHeight);
+    }
+
+    return size;
+}
+
+void FlatItemDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    Q_UNUSED(index);
+    editor->setGeometry(option.rect);
+}
+
 PassBookDelegate::PassBookDelegate(QWidget *parent)
     : QStyledItemDelegate(parent)
     , m_hoveredPassword(QModelIndex())
     , m_inEditMode(false)
     , m_doubleClicked(false)
 {}
+
+namespace {
+const QColor kSelectionColor { 0xE3, 0xE9, 0xF7 };
+const QColor kMaskColor { 0x9C, 0xA3, 0xAF };
+const QColor kBorderColor { 0xF0, 0xF1, 0xF3 };
+constexpr int kMaskDotCount { 8 };
+}
 
 void PassBookDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
@@ -40,8 +65,13 @@ void PassBookDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
     const QRect &rect { option.rect };
 
     if(option.state & QStyle::State_Selected) {
-        painter->fillRect(rect, QColor(0xF5, 0xF5, 0xF5));
+        painter->fillRect(rect, kSelectionColor);
     }
+
+    painter->save();
+    painter->setPen(QPen(kBorderColor));
+    painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+    painter->restore();
 
     QString pass { password.get() };
 
@@ -49,31 +79,20 @@ void PassBookDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
         return;
     }
 
+    painter->save();
+
     if(show) {
         QFont font {QStringLiteral("Consolas"), 9};
-        QFontMetrics fm {font};
-        const int margin {4};
-        int w { static_cast<int>(fm.averageCharWidth() * pass.size() + margin) };
-
-        QPixmap pixmap {w, rect.height()};
-        pixmap.fill();
-
-        QPainter p(&pixmap);
-        p.setFont(font);
-
-        if(option.state & QStyle::State_Selected) {
-            p.fillRect(0, 0, rect.width(), rect.height(), QColor(0xF5, 0xF5, 0xF5));
-        }
-        p.drawText(margin, margin, w, rect.height(), 0, pass);
-        painter->drawPixmap(rect.x(), rect.y(), pixmap);
+        painter->setFont(font);
+        painter->setPen(QPen(QColor(0x1F, 0x23, 0x28)));
+        painter->drawText(rect.adjusted(13, 0, -10, 0), Qt::AlignVCenter | Qt::AlignLeft, pass);
     } else {
-        QPixmap pixmap {rect.width(), rect.height()};
-        pixmap.fill();
-
-        QPainter p {&pixmap};
-        p.fillRect(0, 0, rect.width(), rect.height(), Qt::Dense4Pattern);
-        painter->drawPixmap(option.rect.x(), rect.y(), pixmap);
+        const QString mask { QString(kMaskDotCount, QChar(0x2022)) };
+        painter->setPen(QPen(kMaskColor));
+        painter->drawText(rect.adjusted(13, 0, -10, 0), Qt::AlignVCenter | Qt::AlignLeft, mask);
     }
+
+    painter->restore();
 }
 
 QWidget *PassBookDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -99,6 +118,12 @@ void PassBookDelegate::setEditorData(QWidget *editor, const QModelIndex &index) 
 
     QLineEdit *line { static_cast<QLineEdit*>(editor) };
     line->setText(value);
+}
+
+void PassBookDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+    Q_UNUSED(index);
+    editor->setGeometry(option.rect);
 }
 
 void PassBookDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
