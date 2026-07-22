@@ -130,6 +130,7 @@ PassBookForm::PassBookForm(PassBook* passBook, QWidget *parent)
     ui->groupList->viewport()->setAcceptDrops(true);
     ui->passTable->viewport()->setAcceptDrops(true);
     restoreGeometry(iniSettings.value(QStringLiteral("MainFormGeometry")).toByteArray());
+    ui->splitter->restoreState(iniSettings.value(QStringLiteral("MainFormSplitterState")).toByteArray());
 
     restoreCurrentGroup();
     deselectPass();
@@ -275,6 +276,7 @@ void PassBookForm::closeEvent(QCloseEvent *event)
     clipboard->clear();
 
     iniSettings.setValue(QStringLiteral("MainFormGeometry"), saveGeometry());
+    iniSettings.setValue(QStringLiteral("MainFormSplitterState"), ui->splitter->saveState());
     saveCurrentGroup();
 
     if(m_passBook->wasChanged()) {
